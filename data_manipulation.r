@@ -80,6 +80,14 @@ nhanes_all[, CVD := ifelse(MCQ160F == 1 | MCQ160E == 1 | MCQ160D == 1 | MCQ160C 
 # CKD
 
 
+# income poverty ratio
+# 
+PIR_breaks <- c(-Inf, 0.99, 2.99, Inf)
+PIR_labels <- c("< 1", "1 to <3", "3 or more")
+nhanes_all[, PIR := cut(INDFMPIR, breaks = PIR_breaks, labels = PIR_labels, right = FALSE)]
+
+
+
 # create survey design object for all data
 
 weighted_nhanes_all <- svydesign(
@@ -140,7 +148,11 @@ table1labels <- list(
     LBXGH ~ "Glycated Hemoglobin",
     #LBXGLUSI ~ "Two hour Glucose (OGTT)"
     #LBDGLUSI ~ "fasting glucose",
-    SMOKE ~ "Smoked > 100 cigarettetes in life"
+    SMOKE ~ "Smoked > 100 cigarettetes in life", 
+    DIAB_DUR ~ "Duration of Diabetes",
+    RETINOPATHY ~ "Retinopathy",
+    CVD ~ "CVD", 
+    PIR ~ "Poverty Income Ratio"
 )
 
 
@@ -150,7 +162,7 @@ tbl_svysummary(
     analyze1,
     include = c(RIDAGEYR, AGE60, RIAGENDR, RACE, MARITAL, EDULEVEL,
                 SMOKE, LBDTCSI, LBDTRSI, LBDLDLSI, BMXBMI, BMICAT,
-                SBP, DBP, LBXGH
+                SBP, DBP, LBXGH, SMOKE, DIAB_DUR, RETINOPATHY, CVD, PIR
             ),
     statistic = list(
         all_continuous() ~ "{mean} ({mean.std.error})",
@@ -161,13 +173,13 @@ tbl_svysummary(
         all_categorical() ~ c(0, 1)
     ),
     missing = "no",
-    sort = list(everything() ~ "frequency"),
+    #sort = list(everything() ~ "frequency"),
     label = table1labels
 )  %>% 
     modify_header(
         list()
-    )
-#    add_ci()
+    ) %>% 
+    add_ci()
 
 
 #######################################################

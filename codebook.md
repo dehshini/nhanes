@@ -191,7 +191,7 @@ HIQ210 - Time when no insurance in past year?
 ### Variables needed
  
 ##### Demographic factors: 
-age, sex, race/ethnicity, education, income??.
+age, sex, race/ethnicity, education, income to poverty ratio?? INDFMPIR.
 
 ##### Clinical factors: 
 duration of diabetes, Age when first told you had diabetes: DID040
