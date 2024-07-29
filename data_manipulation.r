@@ -61,10 +61,11 @@ nhanes_all[, RACE := ifelse(RIDRETH1 == 3, 1,
 ]
 
 # smoke
-nhanes_all[, SMOKE := ifelse(SMQ020 == 1, 1,
+nhanes_all[, SMOKE100 := ifelse(SMQ020 == 1, 1,
         ifelse(SMQ020 == 2, 0, NA))
 ]
 
+nhanes_all[, SMOKENOW := ifelse(SMQ040 %in% c(1, 2), 1, 0)]
 
 # duration of diabetes
 # get current age and subtract age of diabetes diagnosis
