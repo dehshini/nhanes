@@ -414,31 +414,6 @@ ggplot() +
 # END TREND BY RACE AND ETHNICITY
 ###################################
 
-## distribution of each SRH status. create stacked bar graph
-# load the data
-plot_data2 <- fread("./out/srh_distribution.csv")
-
-ggplot() +
-    geom_bar(data = plot_data, aes(x = cycle, y = Proportion, fill = SRH), position = "fill") +
-    labs(
-        title = "Distribution of SRH Among US Adults with Self-Reported Diabetes",
-        x = "NHANES Cycle",
-        y = "Proportion (%)"
-    ) +
-    theme_general +
-    scale_x_discrete(label = xlabels) +
-    scale_fill_manual(
-        name = "SRH",
-        values = c("#0401d2", "#ad0000", "#00ee30"),
-        labels = c("Poor", "Fair", "Good")
-
-
-
-#try, remove na values
-nhanes_all[, .(N = .N, Mean_age = mean(RIDAGEYR), SE = sd(RIDAGEYR)/sqrt(.N)), by = .(high_srh)]
-nhanes_all[, .(N = .N, Mean_BMI = mean(BMXBMI, na.rm = TRUE), SD = sd(BMXBMI, na.rm = TRUE)/sqrt(sum(!is.na(BMXBMI))))]
-nhanes_all[, .(N = .N, Mean_HBA1C = mean(HBA1C), SD = sd(HBA1C)/sqrt(.N))]
-
 
 
 #########################################################
