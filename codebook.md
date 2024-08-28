@@ -1,12 +1,18 @@
 # Workflow
-* begin with "load data files script". this load the nhanes data from the directory by cycle. merges them using a full join. converts the data to data tables.
+* begin with "load all data script". this load the nhanes data from the directory by cycle. merges them . converts the data to data tables.
 
 * go to the "data manipulation" script. 
-do srh analysis by age.
+
+* create the weighted datasets 
 
 * 
 
-* 
+# SRH as binary with poor/fair yes/no
+
+## analysis by race/ethnicity
+## distribution of each status as a stacked bar graph
+# analysis by insurance(private, public, uninsured), CKD(), poverty(above and below poverty line)
+
 
 
 
