@@ -30,7 +30,7 @@ INDFMPIR - Ratio of family income to poverty
 ## CHOLESTEROL  
 WTSAFPRP - Fasting Subsample Weight  
 LBDTCSI = TOTAL CHOLESTEROL MMOL/L  
-LBXTC = SAME IN MG/DL  
+LBXSCH = SAME IN MG/DL  
 LBDHDD = HDL CHOLEST MG/DL  
 LBDHDDSI = HDL CHOLEST MMOL/L   
 LBXTR - Triglyceride (mg/dL)  
@@ -191,7 +191,7 @@ HIQ210 - Time when no insurance in past year?
 ### Variables needed
  
 ##### Demographic factors: 
-age, sex, race/ethnicity, education, income??.
+age, sex, race/ethnicity, education, income to poverty ratio?? INDFMPIR.
 
 ##### Clinical factors: 
 duration of diabetes, Age when first told you had diabetes: DID040
