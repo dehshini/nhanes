@@ -19,18 +19,31 @@ for (i in 1:length(nhanes_list2)) {
 
 #################################################
 
+# use nhanes_list2 to create analytic datasets
+# duplicate before modifying
+nhanes_list3 <- nhanes_list2
+
 # exclude those whose age is less than 20
-# for (i in 1:length(nhanes_list2)) {
-#     nhanes_list2[[i]] <- nhanes_list2[[i]][!is.na(RIDAGEYR) & RIDAGEYR >= 20]
-# }
+for (i in 1:length(nhanes_list3)) {
+    nhanes_list3[[i]] <- nhanes_list3[[i]][!is.na(RIDAGEYR) & RIDAGEYR >= 20]
+}
 
 # # keep only those with self reported diabetes
-# for (i in 1:length(nhanes_list2)) {
-#     nhanes_list2[[i]] <- nhanes_list2[[i]][DIQ010 == 1]
-# }
+for (i in 1:length(nhanes_list3)) {
+    nhanes_list3[[i]] <- nhanes_list3[[i]][DIQ010 == 1]
+}
 
 
 # # keep only those with data on SRH
-# for (i in 1:length(nhanes_list2)) {
-#     nhanes_list2[[i]] <- nhanes_list2[[i]][!is.na(HSD010)]
-# }
+for (i in 1:length(nhanes_list3)) {
+    nhanes_list3[[i]] <- nhanes_list3[[i]][!is.na(HSD010)]
+}
+
+# combine the dataframes into one
+nhanes_analytic <- rbindlist(nhanes_list3, fill = TRUE)
+
+# check if there are any NA's
+plot_missing(nhanes_analytic)
+
+# remove NAs from variables that have missing < 2%
+nhanes_analytic <- nhanes_analytic[, lapply(.SD, function(x) ifelse(sum(is.na(x)) < 0.02*nrow(nhanes_analytic), x, NA)), .SDcols = names(nhanes_analytic)]

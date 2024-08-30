@@ -411,3 +411,15 @@ write.csv(prop_lowsrh_pub_insurance, file = "./out/lowsrh_pub_insurance.csv")
 #############################################################
 ################### END LOW SRH, STRATIFIED ###############################
 ################################################################
+
+## analyze for nhanes all
+analyze1 %>% 
+    svyby(~low_srh, ~RACE, design = ., svymean, na.rm = TRUE)
+
+analyze1 %>%
+    svyby(~low_srh, ~INSURANCE, design = ., svymean, na.rm = TRUE)
+
+svymean(~RIDAGEYR, design = analyze1, method = "mean")
+svymean(~RACE, design = analyze1, method = "quantile")
+prop.table((svytable((~RACE), design = analyze1)))
+prop.table(svyby(~RACE, ~low_srh, design = analyze1, svytable))
