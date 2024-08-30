@@ -88,8 +88,8 @@ for (cycle in nhanes_list) {
     # female
     cycle[, FEMALE := ifelse(RIAGENDR == 2, 1, 0)]
     # blood pressure, use any of 4 measurements or take average
-    cycle[, SBP := ]
-    cycle[, DBP := (BPXDI2 + BPXDI3) / 2]
+    cycle[, SBP := rowMeans(.SD, na.rm = TRUE), .SDcols = c("BPXSY1", "BPXSY2", "BPXSY3", "BPXSY4")]
+    cycle[, DBP := rowMeans(.SD, na.rm = TRUE), .SDcols = c("BPXDI1", "BPXDI2", "BPXDI3", "BPXDI4")]
     cycle[, BMICAT := cut(BMXBMI, breaks = c(-Inf, 24.99, 29.99, Inf), labels = c("<25", "25 to <30", ">30"), right = FALSE)]
     cycle[, MARITAL := ifelse(DMDMARTL %in% c(1, 6), 1,
         ifelse(DMDMARTL %in% c(2, 3, 4), 2,
@@ -148,7 +148,7 @@ for (cycle in nhanes_list) {
     # convert ethnicity to black/nonblack
     cycle[, ethnicity := ifelse(RACE == 2, "black", "non-black")]
     cycle[, eGFR := ckd_epi(creat = LBDSCRSI, age = RIDAGEYR, sex = sex, ethnicity = ethnicity)]
-    # calculate albumin creat ratio, acr = urxuma/urxucr *100, round to .01
+    # calculate albumin creat ratio, acr = urxuma/urxucr *100
     cycle[, acr := (URXUMA / URXUCR) * 100]
     # define ckd
     cycle[, CKD := ifelse(eGFR < 60 | acr >= 30, 1,
@@ -160,7 +160,7 @@ for (cycle in nhanes_list) {
     #hypertension
     cycle[, hypertension := ifelse(SBP >= 130 | DBP >= 80 | BPQ040A == 1, 1, 0)]
     #hypercholesterolemia
-    cycle[, hypercholesterolemia := ifelse(LBXSCH >= 240 | BPQ090D == 1, 1, 0)]
+    cycle[, hypercholesterolemia := ifelse(LBXTC >= 240 | BPQ090D == 1, 1, 0)]
     #CVD
     cycle[, CVD := ifelse(ASCVD == 1 | HEART_FAIL == 1 , 1, 0)]
 
