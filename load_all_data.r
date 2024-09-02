@@ -1,6 +1,6 @@
 # load all data
 setwd("/Users/dehshini/code/R/nhanes")
-#load("nhanes.RDATA")
+# load("nhanes_data.RDATA")
 
 library(tidyverse)
 library(haven)
@@ -12,6 +12,7 @@ library(openxlsx)
 library(gt)
 library(tableone)
 library(DataExplorer)
+library(Publish)
 
 
 # Function to load data files from a directory
@@ -49,7 +50,6 @@ cycle_folders <- list.dirs(main_directory, full.names = TRUE, recursive = FALSE)
 
 # Iterate through each cycle folder
 for (cycle_folder in cycle_folders) {
-
     # Extract the cycle name from the folder name
     cycle_name <- basename(cycle_folder)
 
@@ -58,15 +58,17 @@ for (cycle_folder in cycle_folders) {
 
     # Save the cycle data to an object
     assign(paste0("nhanes", cycle_name), cycle_data)
-
 }
 
 # Save all data frames to a single RData file
-#save(list = ls(), file = "nhanes_data.RData")
+# save(list = ls(), file = "nhanes_data.RData")
 
 
 # create a list to hold the nhanes dataframes
-nhanes_list <- list(nhanes01_02, nhanes03_04, nhanes05_06, nhanes07_08, nhanes09_10, nhanes11_12, nhanes13_14, nhanes15_16, nhanes17_18)
+nhanes_list <- list(
+    nhanes01_02, nhanes03_04, nhanes05_06, nhanes07_08, nhanes09_10,
+    nhanes11_12, nhanes13_14, nhanes15_16, nhanes17_18
+)
 
 
 
@@ -82,15 +84,42 @@ PIR_labels <- c("< 1", "1 to <3", "3 or more")
 for (cycle in nhanes_list) {
     # create new weights, 9 cycles
     cycle[, WTMEC9YR := WTMEC2YR / 9]
+
     # create derived variables
     # age group, 1 = 20-39, 2= 40-64, 3 = 65+
-    cycle[, AGEGROUP := cut(RIDAGEYR, breaks = c(0, 19.99, 39.99, 64.99, Inf), labels = c("0-19yeas", "20-39yrs", "40-64yrs", ">=65years"), right = FALSE)]
+    cycle[, AGEGROUP := cut(
+        RIDAGEYR, breaks = c(0, 19.99, 39.99, 64.99, Inf),
+        labels = c("0-19yeas", "20-39yrs", "40-64yrs", ">=65years"),
+        right = FALSE
+        )
+    ]
+    
     # female
     cycle[, FEMALE := ifelse(RIAGENDR == 2, 1, 0)]
+
     # blood pressure, use any of 4 measurements or take average
-    cycle[, SBP := rowMeans(.SD, na.rm = TRUE), .SDcols = c("BPXSY1", "BPXSY2", "BPXSY3", "BPXSY4")]
-    cycle[, DBP := rowMeans(.SD, na.rm = TRUE), .SDcols = c("BPXDI1", "BPXDI2", "BPXDI3", "BPXDI4")]
-    cycle[, BMICAT := cut(BMXBMI, breaks = c(-Inf, 24.99, 29.99, Inf), labels = c("<25", "25 to <30", ">30"), right = FALSE)]
+    # convert 0s in any of the varibles to NA
+    for (i in c("BPXSY1", "BPXSY2", "BPXSY3", "BPXSY4", 
+                "BPXDI1", "BPXDI2", "BPXDI3", "BPXDI4")
+        ) {
+        cycle[, i := ifelse(i == 0, NA, i)]
+    }
+
+    cycle[, 
+        SBP := rowMeans(.SD, na.rm = TRUE), 
+        .SDcols = c("BPXSY1", "BPXSY2", "BPXSY3", "BPXSY4")
+    ]
+    cycle[, 
+        DBP := rowMeans(.SD, na.rm = TRUE), 
+        .SDcols = c("BPXDI1", "BPXDI2", "BPXDI3", "BPXDI4")
+    ]
+    cycle[, BMICAT := cut(
+        BMXBMI, 
+        breaks = c(-Inf, 24.99, 29.99, Inf), 
+        labels = c("<25", "25 to <30", ">30"), 
+        right = FALSE
+        )
+    ]
     cycle[, MARITAL := ifelse(DMDMARTL %in% c(1, 6), 1,
         ifelse(DMDMARTL %in% c(2, 3, 4), 2,
             ifelse(DMDMARTL == 5, 3, NA)
@@ -119,29 +148,55 @@ for (cycle in nhanes_list) {
     # hba1c
     cycle[, HBA1C := LBXGH]
     # categorize hba1c
-    cycle[, HBA1C_CAT := cut(HBA1C, breaks = c(-Inf, 6.99, 7.99, 8.99, Inf), labels = c("<7%", "7-8%", "8-9%", ">9%"), right = FALSE)]
+    cycle[, 
+    HBA1C_CAT := cut(
+        HBA1C, 
+        breaks = c(-Inf, 6.99, 7.99, 8.99, Inf), 
+        labels = c("<7%", "7-8%", "8-9%", ">9%"), 
+        right = FALSE
+        )
+    ]
 
     # diabetes duration is held in different variables
-    # Check if DID040G exists, if not, use DID040
-    if ("DID040G" %in% names(cycle)) {
-        cycle[, DIAB_DUR := (RIDAGEYR - DID040G)]
+
+    # Check if DID040Q exists, if not, use DID040 (first 2 cycles use DID040Q)
+    # replace extreme values with NA first
+    if ("DID040Q" %in% names(cycle)) {
+        cycle[, DID040Q := ifelse(
+            DID040Q == 99999 | DID040Q == 77777, NA, DID040Q)
+        ]
+        cycle[, DIAB_DUR := (RIDAGEYR - DID040Q)]
     } else {
+        cycle[, DID040 := ifelse(DID040 == 999 | DID040 == 777, NA, DID040)]
         cycle[, DIAB_DUR := (RIDAGEYR - DID040)]
     }
     # categorize diabetes duration
-    cycle[, DIAB_DUR_CAT := cut(DIAB_DUR, breaks = c(-Inf, 4.99, 14.99, Inf), labels = c("0 to <5 years", "5 to <15 years", ">=15 years"), right = FALSE)]
+    cycle[, DIAB_DUR_CAT := cut(
+        DIAB_DUR, 
+        breaks = c(-Inf, 4.99, 14.99, Inf), 
+        labels = c("0 to <5 years", "5 to <15 years", ">=15 years"), 
+        right = FALSE
+        )
+    ]
 
     # RETINOPATHY
     cycle[, RETINOPATHY := ifelse(DIQ080 == 1, 1, 0)]
 
     # ASCVD
-    cycle[, ASCVD := ifelse(MCQ160F == 1 | MCQ160E == 1 | MCQ160D == 1 | MCQ160C == 1, 1, 0)]
+    cycle[, ASCVD := ifelse(
+        MCQ160F == 1 | MCQ160E == 1 | MCQ160D == 1 | MCQ160C == 1, 1, 0)
+    ]
 
     # heart failure
     cycle[, HEART_FAIL := ifelse(MCQ160B == 1, 1, 0)]
 
     # income poverty ratio
-    cycle[, PIR := cut(INDFMPIR, breaks = PIR_breaks, labels = PIR_labels, right = FALSE)]
+    cycle[, PIR := cut(
+        INDFMPIR, 
+        breaks = PIR_breaks, 
+        labels = PIR_labels, 
+        right = FALSE)
+    ]
     cycle[, FAM_INCOME := cut(INDFMPIR, breaks = c(-Inf, 0.99, Inf), labels = c("Below poverty threshold", "Above or at poverty threshold"), right = FALSE)]
     # convert sex to M/F
     cycle[, sex := ifelse(RIAGENDR == 1, "M", "F")]
@@ -157,13 +212,28 @@ for (cycle in nhanes_list) {
     cycle[, high_srh := ifelse(HSD010 <= 3, 1, 0)]
     cycle[, low_srh := ifelse(HSD010 %in% c(4, 5), 1, 0)]
 
-    #hypertension
-    cycle[, hypertension := ifelse(SBP >= 130 | DBP >= 80 | BPQ040A == 1, 1, 0)]
-    #hypercholesterolemia
-    cycle[, hypercholesterolemia := ifelse(LBXTC >= 240 | BPQ090D == 1, 1, 0)]
-    #CVD
-    cycle[, CVD := ifelse(ASCVD == 1 | HEART_FAIL == 1 , 1, 0)]
+    # bp meds
+    cycle[, bpmeds := ifelse(BPQ040A == 1, 1,
+                    ifelse(BPQ040A == 2, 0, NA))]
+    # hypertension
+    #cycle[, hypertension := ifelse(SBP >= 130 | DBP >= 80 | bpmeds == 1, 1, 0)]
 
+    cycle[, BPQ090D := ifelse(BPQ090D == 9 | BPQ090D == 7, NA_real_, BPQ090D)]
+    # cholesterol meds
+    # cycle[, cholesterolmeds := fcase(
+    #     BPQ090D == 9 | BPQ090D == 7, NA_real_,
+    #     BPQ090D == 1, 1,
+    #     BPQ090D == 2, 0,
+    #     default = NA_real_
+    # )]
+    # # ifelse(BPQ090D == 9 | BPQ090D == 7, NA, BPQ090D)]
+    # # cycle[, cholesterolmeds := ifelse(!is.na(BPQ090D), 0,
+    # #                         ifelse(BPQ090D == 1, 1, NA))]
+    # # hypercholesterolemia
+    # cycle[, hypercholesterolemia := ifelse(LBXTC >= 240 | cholesterolmeds == 1, 1, 0)]
+
+    # CVD
+    cycle[, CVD := ifelse(ASCVD == 1 | HEART_FAIL == 1, 1, 0)]
 }
 
 
@@ -211,3 +281,22 @@ for (cycle in nhanes_list) {
     print(table(cycle$INSURANCE, useNA = "ifany"))
 }
 
+nhanes_all <- rbindlist(nhanes_list, fill = TRUE)
+
+# BP
+nhanes_all[, bpmeds := ifelse(
+    is.na(bpmeds) & (BPQ010 == 5 | BPQ020 == 2), 0, bpmeds
+    )
+]
+bpmeds := ifelse(BPQ040A == 1, 1,
+    ifelse(BPQ040A == 2, 0, NA)
+)
+
+nhanes_all[, hypertension := ifelse(SBP >= 130 | DBP >= 80 | bpmeds == 1, 1, 0)]
+
+# cholesterol
+nhanes_all[, cholesterolmeds := ifelse(
+    !is.na(BPQ090D), 0,
+        ifelse(BPQ090D == 1, 1,
+            ifelse(BPQ090D == 2, 0, NA))) 
+)]
