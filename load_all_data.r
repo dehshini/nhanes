@@ -98,13 +98,12 @@ for (cycle in nhanes_list) {
     cycle[, FEMALE := ifelse(RIAGENDR == 2, 1, 0)]
 
     # blood pressure, use any of 4 measurements or take average
-    # convert 0s in any of the varibles to NA
-    for (i in c("BPXSY1", "BPXSY2", "BPXSY3", "BPXSY4", 
-                "BPXDI1", "BPXDI2", "BPXDI3", "BPXDI4")
-        ) {
-        cycle[, i := ifelse(i == 0, NA, i)]
-    }
 
+    cycle[, c("BPXDI1", "BPXDI2", "BPXDI3", "BPXDI4") :=
+        lapply(.SD, function(x) fifelse(x == 0, NA_real_, x)),
+    .SDcols = c("BPXDI1", "BPXDI2", "BPXDI3", "BPXDI4")
+    ]
+    
     cycle[, 
         SBP := rowMeans(.SD, na.rm = TRUE), 
         .SDcols = c("BPXSY1", "BPXSY2", "BPXSY3", "BPXSY4")
@@ -113,6 +112,10 @@ for (cycle in nhanes_list) {
         DBP := rowMeans(.SD, na.rm = TRUE), 
         .SDcols = c("BPXDI1", "BPXDI2", "BPXDI3", "BPXDI4")
     ]
+    # convert 0s to NA
+    cycle[, SBP := ifelse(SBP == 0, NA, SBP)]
+    cycle[, DBP := ifelse(DBP == 0, NA, DBP)]
+    
     cycle[, BMICAT := cut(
         BMXBMI, 
         breaks = c(-Inf, 24.99, 29.99, Inf), 
@@ -213,24 +216,31 @@ for (cycle in nhanes_list) {
     cycle[, low_srh := ifelse(HSD010 %in% c(4, 5), 1, 0)]
 
     # bp meds
-    cycle[, bpmeds := ifelse(BPQ040A == 1, 1,
-                    ifelse(BPQ040A == 2, 0, NA))]
+    cycle[, bpmeds := BPQ040A]
+    cycle[, bpmeds := ifelse(
+        is.na(bpmeds) & (BPQ010 == 5 | BPQ020 == 2), 0, 
+        ifelse(BPQ040A == 9, NA, 
+               ifelse(BPQ040A == 2, 0, BPQ040A))
+        )
+    ]
     # hypertension
-    #cycle[, hypertension := ifelse(SBP >= 130 | DBP >= 80 | bpmeds == 1, 1, 0)]
+    cycle[, hypertension := ifelse(
+        SBP >= 130 | DBP >= 80 | bpmeds == 1, 1, 0
+    )]
 
-    cycle[, BPQ090D := ifelse(BPQ090D == 9 | BPQ090D == 7, NA_real_, BPQ090D)]
+
     # cholesterol meds
-    # cycle[, cholesterolmeds := fcase(
-    #     BPQ090D == 9 | BPQ090D == 7, NA_real_,
-    #     BPQ090D == 1, 1,
-    #     BPQ090D == 2, 0,
-    #     default = NA_real_
-    # )]
-    # # ifelse(BPQ090D == 9 | BPQ090D == 7, NA, BPQ090D)]
-    # # cycle[, cholesterolmeds := ifelse(!is.na(BPQ090D), 0,
-    # #                         ifelse(BPQ090D == 1, 1, NA))]
-    # # hypercholesterolemia
-    # cycle[, hypercholesterolemia := ifelse(LBXTC >= 240 | cholesterolmeds == 1, 1, 0)]
+    cycle[, cholmeds := ifelse(
+        BPQ090D == 1, 1,
+        ifelse(BPQ090D %in% c(2, 7, 9), 0, NA)
+    )]
+
+    cycle[, hypercholesterolemia := fcase(
+    !is.na(LBXTC) & LBXTC >= 240, 1,
+    !is.na(cholmeds) & cholmeds == 1, 1,
+    is.na(LBXTC) & is.na(cholmeds), NA_real_,
+    default = 0
+    )]
 
     # CVD
     cycle[, CVD := ifelse(ASCVD == 1 | HEART_FAIL == 1, 1, 0)]
@@ -281,22 +291,3 @@ for (cycle in nhanes_list) {
     print(table(cycle$INSURANCE, useNA = "ifany"))
 }
 
-nhanes_all <- rbindlist(nhanes_list, fill = TRUE)
-
-# BP
-nhanes_all[, bpmeds := ifelse(
-    is.na(bpmeds) & (BPQ010 == 5 | BPQ020 == 2), 0, bpmeds
-    )
-]
-bpmeds := ifelse(BPQ040A == 1, 1,
-    ifelse(BPQ040A == 2, 0, NA)
-)
-
-nhanes_all[, hypertension := ifelse(SBP >= 130 | DBP >= 80 | bpmeds == 1, 1, 0)]
-
-# cholesterol
-nhanes_all[, cholesterolmeds := ifelse(
-    !is.na(BPQ090D), 0,
-        ifelse(BPQ090D == 1, 1,
-            ifelse(BPQ090D == 2, 0, NA))) 
-)]

@@ -4,40 +4,13 @@
 
 ## TABLE
 #############################################################################
-# create table label names
-# table1labels <- list(
-#     RIDAGEYR ~ "Age (years)",
-#     AGE65 ~ "Age >= 65",
-#     RIAGENDR ~ "Gender",
-#     LBDTCSI ~ "Total Cholesterol (mmol/L)",
-#     LBDTRSI ~ "Triglycerides (mmol/L)",
-#     LBDLDLSI ~ "Low Density Lipoprotein Cholesterol (mmol/L)",
-#     BMXBMI ~ "Body Mass Index (kg/m2)",
-#     BMICAT ~ "Body Mass Index Category",
-#     MARITAL ~ "Marital Status",
-#     EDULEVEL ~ "Education Level",
-#     RACE ~ "Race",
-#     SBP ~ "Systolic Blood Pressure (mmHg)",
-#     DBP ~ "Diastolic Blood Pressure (mmHg)",
-#     LBXGH ~ "Glycated Hemoglobin (%)",
-#     # LBXGLUSI ~ "Two hour Glucose (OGTT)"
-#     # LBDGLUSI ~ "fasting glucose",
-#     SMOKE ~ "Smoking Status",
-#     DIAB_DUR ~ "Duration of Diabetes (years)",
-#     RETINOPATHY ~ "Retinopathy",
-#     ASCVD ~ "ASCVD",
-#     HEART_FAIL ~ "Heart Failure",
-#     CKD ~ "CKD",
-#     PIR ~ "Poverty Income Ratio"
-# )
-
 #NEW TABLE1 LABELS
 newtable1_labels <- list(
     RIDAGEYR ~ "Age (years), mean",
     AGEGROUP ~ "Age Group, %",
     FEMALE ~ "Female, %",
     EDULEVEL ~ "Education, %",
-    INSURANCE ~ "Health Insurance, %",
+    insurance ~ "Health Insurance, %",
     RACE ~ "Race/Ethnicity, %",
     FAM_INCOME ~ "Family Income, %",
     BMXBMI ~ "BMI (kg/m2)",
@@ -45,74 +18,22 @@ newtable1_labels <- list(
     current_smoker ~ "Current Smoker, self-reported or cotinine > 10ng/ml, %",
     HBA1C ~ "HbA1c (%), mean",
     HBA1C_CAT ~ "HbA1c Categories, %",
-    DIAB_DUR_CAT ~ "Time since diabetes diagnosis, %",
+    diabetes_duration_cat ~ "Time since diabetes diagnosis, %",
     hypertension ~ "Hypertension, %",
     hypercholesterolemia ~ "Hypercholesterolemia",
     CVD ~ "Cardiovascular Disease",
     CKD ~ "Chronic Kidney Disease"
 )
 
-
-
-## create table
-# table1 <- tbl_svysummary(
-#     analyze1,
-#     include = c(
-#         RIDAGEYR, AGE65, RIAGENDR, RACE, MARITAL, EDULEVEL,
-#         SMOKE, LBDTCSI, LBDTRSI, LBDLDLSI, BMXBMI, BMICAT,
-#         SBP, DBP, LBXGH, SMOKE, 
-#         DIAB_DUR, 
-#         RETINOPATHY, ASCVD, HEART_FAIL, CKD, PIR
-#     ),
-#     by = high_srh,
-#     statistic = list(
-#         all_continuous() ~ "{mean} ({mean.std.error})",
-#         all_categorical() ~ "{p}% ({p.std.error})",
-#         DIAB_DUR ~ "{median} ({p25}, {p75})"
-#     ),
-#     digits = list(
-#         all_continuous() ~ c(1, 1),
-#         all_categorical() ~ c(1, 2)
-#     ),
-#     missing = "no",
-#     missing_text = "Missing",
-#     # missing_stat = "{N_obs}",
-#     label = table1labels
-# ) %>%
-#     add_overall(
-#         col_label = "**Overall**, N = {N_unweighted}"
-#     ) %>%
-#     modify_header(
-#         label = "**Variable**",
-#         all_stat_cols() ~ "**N = {n_unweighted}**"
-#     ) %>%
-#     #add_stat_label(
-#     #    location = "column"
-#     #) %>%
-#     modify_spanning_header(
-#         c("stat_1", "stat_2") ~ "**High SRH**"
-#     ) %>%
-#     add_p() %>%
-#     modify_caption(
-#         "**Table 1.** Characteristics of US Adults with Diabetes, Overall and by High SRH status."
-#     ) %>%
-#     modify_footnote(
-#         all_stat_cols() ~ "Mean (standard error), Proportion (%) (standard error), Median (p25, p75) for diabetes duration",
-#     ) %>%
-#     as_gt()
-    #gt::gtsave("/Users/dehshini/code/R/nhanes/out/table1.docx")
-
-#table1 %>% gt::gtsave("./out/table1.docx")
-
 # NEW TABLE1
 table1n <- tbl_svysummary(
     analyze1,
     include = c(
         RIDAGEYR, AGEGROUP, FEMALE, RACE, FAM_INCOME, EDULEVEL,
-        INSURANCE,
+        insurance,
         BMXBMI, BMICAT, current_smoker,
         HBA1C, HBA1C_CAT,
-        DIAB_DUR_CAT,
+        diabetes_duration_cat,
         hypertension, hypercholesterolemia, CVD, CKD 
     ),
     by = high_srh,
@@ -141,14 +62,6 @@ table1n <- tbl_svysummary(
             all_categorical() ~ "svy.chisq.test"
         )
     )
-#    modify_caption(
-#        caption = "Table 1. Characteristics of US Adults with Diabetes, Overall and by High SRH status. N = {N_unweighted}"
-#    )
-#    modify_footnote(
-#        all_stat_cols() ~ "Mean (standard error), Proportion (%) (standard error), Median (p25, p75) for diabetes duration",
-#    )
-#    as_gt()
-# gt::gtsave("/Users/dehshini/code/R/nhanes/out/table1.docx")
 
 table1n %>%
     as_gt() %>%
@@ -161,10 +74,10 @@ table1low <- tbl_svysummary(
     analyze1,
     include = c(
         RIDAGEYR, AGEGROUP, FEMALE, RACE, FAM_INCOME, EDULEVEL,
-        INSURANCE,
+        insurance,
         BMXBMI, BMICAT, current_smoker,
         HBA1C, HBA1C_CAT,
-        DIAB_DUR_CAT,
+        diabetes_duration_cat,
         hypertension, hypercholesterolemia, CVD, CKD
     ),
     by = low_srh,
@@ -174,7 +87,7 @@ table1low <- tbl_svysummary(
     ),
     digits = list(
         all_continuous() ~ c(1, 1),
-        all_categorical() ~ c(1, 2)
+        all_categorical() ~ c(1, 4)
     ),
     missing = "ifany",
     missing_text = "Missing",
@@ -235,7 +148,7 @@ theme_general <- theme(axis.text.x = element_text(angle = 0, hjust = 0.5)) +
 # TREND GRAPH
 
 # load srh summary 1
-plot_data <- fread("./out/highsrh_summary.csv")
+plot_data <- fread("./out/lowsrh_summary.csv")
 head(plot_data)
 str(plot_data)
 

@@ -57,6 +57,7 @@ table(nhanes_analytic_small$low_srh, useNA = "ifany")
 
 # missing proportions
 plot_missing(nhanes_analytic_small)
+profile_missing(nhanes_analytic_small)
 
 # remove NAs from variables that have missing < 2%
 

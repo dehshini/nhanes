@@ -39,14 +39,6 @@ getSummary <- function(varformula, byformula, design) {
 
 # try the function
 getSummary(~high_srh, ~RIAGENDR, analyze1)
-getSummary(~high_srh, ~RACE, analyze1)
-getSummary(~RACE, ~high_srh, analyze1)
-getSummary(~RIAGENDR, ~high_srh, analyze1)
-getSummary(~RIAGENDR, ~low_srh, analyze1)
-getSummary(~RACE, ~low_srh, analyze1)
-svyby(~high_srh, by = ~RACE, design = analyze1, unwtd.count)
-table(analyze1$variables[["low_srh"]], useNA = "ifany")
-table(analyze1$variables[["high_srh"]], useNA = "ifany")
 
 ################################################################################
 # CREATE WEIGHTED DATA SETS FOR EACH YEAR GROUP
@@ -67,46 +59,37 @@ for (i in 1:length(weighted_nhanes_list)) {
 }
 
 #########################################################################
-# Function to calculate the weighted proportion of 'yes' (1) for high_srh
+# Function to calculate the weighted proportion for srh
 calculate_svy_prop <- function(design, x) {
-    ## put the variable of interest in a formula
+    # Put the variable of interest in a formula
     form <- as.formula(paste0("~", x))
-    ## only keep the TRUE column of counts from svytable
-    weighted_counts <- svytable(form, design)[[2]]
-    ## calculate unweighted counts
-    unweighted_counts <- table(design$variables[[x]])[2]
-    ## calculate proportions (multiply by 100 to get percentages)
+    
+    # Calculate weighted proportions (multiply by 100 to get percentages)
     weighted_props <- svyciprop(form, design, na.rm = TRUE) * 100
-    ## extract the confidence intervals and multiply to get percentages
-    weighted_confint <- confint(weighted_props) * 100
-    ## use svymean to calculate design effect and only keep the TRUE column
-    design_eff <- deff(svymean(form, design, na.rm = TRUE, deff = TRUE))[[TRUE]]
+    
+    # Extract the confidence intervals and multiply to get percentages
+    Lower_CI <- confint(weighted_props)[1] * 100
+    Upper_CI <- confint(weighted_props)[2] * 100
+    
+    unweighted_counts <- table(design$variables[[x]])[2]
+    
     # get the standard error
-    se <- SE(svymean(form, design, na.rm = TRUE))
-
-    ## combine in to one data frame
-    full_table <- cbind(
-        #"Variable" = x,
-        #"Count" = weighted_counts,
+    se <- SE(weighted_props) * 100
+    
+    #design_eff <- deff(svymean(form, design, na.rm = TRUE, deff = TRUE))[[TRUE]]
+    
+    # Combine into one data frame
+    full_table <- data.frame(
         "Unweighted Count" = unweighted_counts,
-        "Proportion" = weighted_props,
-        weighted_confint,
-        #"Design effect" = design_eff, 
+        "Proportion" = as.numeric(weighted_props),
+        "Lower_CI" = Lower_CI,
+        "Upper_CI" = Upper_CI,
         "SE" = se
     )
-
-    ## return table as a dataframe
-    full_table <- data.frame(full_table,
-        ## remove the variable names from rows (is a separate column now)
-        row.names = NULL
-    )
-
-    ## change numerics back to numeric
-    full_table[, 2:5] <- as.numeric(full_table[, 2:5])
-
     ## return dataframe
     full_table
 }
+
 ################################################################################
 
 

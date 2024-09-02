@@ -219,6 +219,11 @@ nhanes_all[, diabetes_duration_cat := cut(
 )]
 
 # blood pressure
+nhanes_all[, c("BPXDI1", "BPXDI2", "BPXDI3", "BPXDI4") :=
+    lapply(.SD, function(x) fifelse(x == 0, NA_real_, x)),
+    .SDcols = c("BPXDI1", "BPXDI2", "BPXDI3", "BPXDI4")
+]
+
 nhanes_all[, SBP := rowMeans(.SD, na.rm = TRUE),
     .SDcols = c("BPXSY1", "BPXSY2", "BPXSY3", "BPXSY4")
 ]
@@ -259,7 +264,9 @@ nhanes_all[, hypercholesterolemia := fcase(
 )]
 
 # CVD, includes CHD, angina, heart attack, stroke, heart failure
-nhanes_all[, CVD := ifelse(ASCVD == 1 | HEART_FAIL == 1, 1, 0)]
+nhanes_all[, CVD := ifelse(MCQ160C == 1 | MCQ160F == 1 | MCQ160B == 1, 1,
+    ifelse(MCQ160C == 2 | MCQ160F == 2 | MCQ160B == 2, 0, NA))
+]
 
 # insurance status, 0=private, 1=public, 2=uninsured
 nhanes_all[, insurance := fcase(
