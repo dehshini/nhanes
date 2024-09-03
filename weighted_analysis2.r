@@ -99,12 +99,3 @@ for (race in unique(nhanes_all$RACE)) {
 # Combine the results into a single dataframe
 race_summary <- rbindlist(results_list, use.names = TRUE, fill = TRUE)
 
-# Initialize an empty list to store the results
-results_list <- list()
-#### summary of proportions
-for (cycle in unique(nhanes_all$SDDSRVYR)) {
-    cycle_design <- subset(analyze1, SDDSRVYR == cycle)
-    prop_data <- calculate_svy_prop(cycle_design, "low_srh")
-    prop_data$Cycle <- cycle # Add cycle information
-    results_list[[as.character(cycle)]] <- prop_data
-}

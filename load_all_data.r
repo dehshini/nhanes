@@ -216,17 +216,17 @@ for (cycle in nhanes_list) {
     cycle[, low_srh := ifelse(HSD010 %in% c(4, 5), 1, 0)]
 
     # bp meds
-    cycle[, bpmeds := BPQ040A]
-    cycle[, bpmeds := ifelse(
-        is.na(bpmeds) & (BPQ010 == 5 | BPQ020 == 2), 0, 
-        ifelse(BPQ040A == 9, NA, 
-               ifelse(BPQ040A == 2, 0, BPQ040A))
-        )
-    ]
+    # cycle[, bpmeds := BPQ040A]
+    # cycle[, bpmeds := ifelse(
+    #     is.na(bpmeds) & (BPQ010 == 5 | BPQ020 == 2), 0, 
+    #     ifelse(BPQ040A == 9, NA, 
+    #            ifelse(BPQ040A == 2, 0, BPQ040A))
+    #     )
+    # ]
     # hypertension
-    cycle[, hypertension := ifelse(
-        SBP >= 130 | DBP >= 80 | bpmeds == 1, 1, 0
-    )]
+    # cycle[, hypertension := ifelse(
+    #     SBP >= 130 | DBP >= 80 | bpmeds == 1, 1, 0
+    # )]
 
 
     # cholesterol meds

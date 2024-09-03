@@ -86,8 +86,8 @@ table1low <- tbl_svysummary(
         all_categorical() ~ "{p} ({p.std.error})"
     ),
     digits = list(
-        all_continuous() ~ c(1, 1),
-        all_categorical() ~ c(1, 4)
+        all_continuous() ~ c(1, 3),
+        all_categorical() ~ c(1, 3)
     ),
     missing = "ifany",
     missing_text = "Missing",
@@ -182,42 +182,54 @@ ggplot(plot_data, aes(x = cycle, y = Proportion)) +
 
 # load the data
 plot_gt65 <- fread("./out/highsrh_gt65.csv")
-plot_lt65 <- fread("./out/highsrh_lt65.csv")
+plot_4065 <- fread("./out/highsrh_4065.csv")
+plot_lt40 <- fread("./out/highsrh_lt40.csv")
 
 # rename the first column
 colnames(plot_gt65)[1] <- "cycle"
-colnames(plot_lt65)[1] <- "cycle"
+colnames(plot_lt40)[1] <- "cycle"
+colnames(plot_4065)[1] <- "cycle"
 
 # Convert the cycle column to a factor
 plot_gt65[, cycle := factor(cycle)]
-plot_lt65[, cycle := factor(cycle)]
+plot_lt40[, cycle := factor(cycle)]
+plot_4065[, cycle := factor(cycle)]
 
 head(plot_gt65)
-head(plot_lt65)
+head(plot_lt40)
+head(plot_4065)
 
 
 # create the plot
 ggplot() +
-    geom_line(data = plot_gt65, aes(x = cycle, y = Proportion, color = "gt65"), group = 1, linewidth = 1, linetype = "dashed") + # Line for trend
-    geom_point(data = plot_gt65, aes(x = cycle, y = Proportion, color = "gt65"), size = 2) + # Points for each cycle
-    geom_errorbar(data = plot_gt65, aes(x = cycle, ymin = Lower, ymax = Upper), width = 0.1, color = "#999999", alpha = 0.8) + # Error bars
-    geom_line(data = plot_lt65, aes(x = cycle, y = Proportion, color = "lt65"), group = 1, linewidth = 1, linetype = "solid") + # Line for trend
-    geom_point(data = plot_lt65, aes(x = cycle, y = Proportion, color = "lt65"), size = 2) + # Points for each cycle
-    geom_errorbar(data = plot_lt65, aes(x = cycle, ymin = Lower, ymax = Upper), width = 0.1, color = "#999999", alpha = 0.8) + # Error bars
+    geom_line(data = plot_gt65, aes(x = cycle, y = Proportion, color = ">= 65"), group = 1, linewidth = 1, linetype = "dashed") + # Line for trend
+    geom_point(data = plot_gt65, aes(x = cycle, y = Proportion, color = ">= 65"), size = 2) + # Points for each cycle
+    geom_errorbar(data = plot_gt65, aes(x = cycle, ymin = Lower_CI, ymax = Upper_CI), width = 0.1, color = "#999999", alpha = 0.8) + # Error bars
+
+    geom_line(data = plot_4065, aes(x = cycle, y = Proportion, color = "40 - 64"), group = 1, linewidth = 1, linetype = "dotted") + # Line for trend
+    geom_point(data = plot_4065, aes(x = cycle, y = Proportion, color = "40 - 64"), size = 2) + # Points for each cycle
+    geom_errorbar(data = plot_4065, aes(x = cycle, ymin = Lower_CI, ymax = Upper_CI), width = 0.1, color = "#999999", alpha = 0.8) + # Error bars
+
+    geom_line(data = plot_lt40, aes(x = cycle, y = Proportion, color = "20 - 39"), group = 1, linewidth = 1, linetype = "solid") + # Line for trend
+    geom_point(data = plot_lt40, aes(x = cycle, y = Proportion, color = "20 - 39"), size = 2) + # Points for each cycle
+    geom_errorbar(data = plot_lt40, aes(x = cycle, ymin = Lower_CI, ymax = Upper_CI), width = 0.1, color = "#999999", alpha = 0.8) + # Error bars
+
     labs(
         title = "Trends of High SRH Among US Adults with Self-Reported Diabetes by Age Group",
         x = "NHANES Cycle",
         y = "Proportion (%)"
     ) +
     theme_general +
-    scale_color_manual(
-        name = "Age Group",
-        values = c("gt65" = "#c92601", "lt65" = "#2d03ff"),
-        labels = c("gt65" = "Age >= 65", "lt65" = "Age < 65")
-    ) +
-    guides(color = guide_legend(override.aes = list(linetype = c(2, 1), shape = c(NA, NA), size = c(1.5, 1.5)))) +
+    scale_color_brewer(palette = "Set1") +
+    # guides(color = guide_legend(override.aes = list(linetype = c(2, 1), shape = c(NA, NA), size = c(1.5, 1.5)))) +
     scale_x_discrete(label = xlabels) +
-    ylim(0, 100)
+    ylim(0, 100) +
+    scale_y_continuous(
+        breaks = c(0, 20, 40, 60, 80, 100), 
+        labels = c("0", "20", "40", "60", "80", "100"), 
+        limits = c(0, 100),
+        minor_breaks = c(10, 30, 50, 70, 90)
+    )
 
 
 # END TREND BY AGE GRAPH
@@ -248,23 +260,28 @@ head(plot_female)
 ggplot() +
     geom_line(data = plot_male, aes(x = cycle, y = Proportion, color = "male"), group = 1, linewidth = 1, linetype = "dashed") + # Line for trend
     geom_point(data = plot_male, aes(x = cycle, y = Proportion, color = "male"), size = 2) + # Points for each cycle
-    geom_errorbar(data = plot_male, aes(x = cycle, ymin = Lower, ymax = Upper), width = 0.2, color = "#0401d2", alpha = 0.7) + # Error bars
+    geom_errorbar(data = plot_male, aes(x = cycle, ymin = Lower_CI, ymax = Upper_CI), width = 0.2, color = "#0401d2", alpha = 0.7) + # Error bars
+
     geom_line(data = plot_female, aes(x = cycle, y = Proportion, color = "female"), group = 1, linewidth = 1, linetype = "dotted") + # Line for trend
     geom_point(data = plot_female, aes(x = cycle, y = Proportion, color = "female"), size = 2) + # Points for each cycle
-    geom_errorbar(data = plot_female, aes(x = cycle, ymin = Lower, ymax = Upper), width = 0.2, color = "#ad0000", alpha = 0.7) + # Error bars
+    geom_errorbar(data = plot_female, aes(x = cycle, ymin = Lower_CI, ymax = Upper_CI), width = 0.2, color = "#ad0000", alpha = 0.7) + # Error bars
+
     labs(
         title = "Trends of High SRH Among US Adults with Self-Reported Diabetes by Sex",
         x = "NHANES Cycle",
         y = "Proportion (%)"
     ) +
     theme_general +
-    scale_color_manual(
-        name = "Sex",
-        values = c("male" = "#2d03ff", "female" = "#c92601"),
-        labels = c("male" = "Male", "female" = "Female")
-    ) +
+    scale_color_brewer(palette = "Set1") +
     scale_x_discrete(label = xlabels) +
-    ylim(0, 100)
+    ylim(0, 100) +
+    scale_y_continuous(
+        breaks = c(0, 20, 40, 60, 80, 100),
+        labels = c("0", "20", "40", "60", "80", "100"),
+        limits = c(0, 100),
+        minor_breaks = c(10, 30, 50, 70, 90)
+    )
+
 
 # END TREND BY SEX GRAPH
 ######################################################
@@ -275,10 +292,10 @@ ggplot() +
 # TREND BY RACE AND ETHNICITY
 
 # load the data
-plot_other <- fread("./out/srh_other.csv")
-plot_black <- fread("./out/srh_black.csv")
-plot_hispanic <- fread("./out/srh_hispanic.csv")
-plot_white <- fread("./out/srh_white.csv")
+plot_other <- fread("./out/highsrh_other.csv")
+plot_black <- fread("./out/highsrh_black.csv")
+plot_hispanic <- fread("./out/highsrh_hispanic.csv")
+plot_white <- fread("./out/highsrh_white.csv")
 
 
 # rename the first column
@@ -297,32 +314,42 @@ plot_white[, cycle := factor(cycle)]
 
 # create the plot
 ggplot() +
-    geom_line(data = plot_other, aes(x = cycle, y = Proportion, color = "other"), group = 1, linewidth = 1, linetype = "dashed") + # Line for trend
-    geom_point(data = plot_other, aes(x = cycle, y = Proportion, color = "other"), size = 2) + # Points for each cycle
-    geom_errorbar(data = plot_other, aes(x = cycle, ymin = Lower, ymax = Upper), width = 0.2, color = "#ad0000", alpha = 0.7) + # Error bars
-    geom_line(data = plot_black, aes(x = cycle, y = Proportion, color = "blck"), group = 1, linewidth = 1, linetype = "dotted") + # Line for trend
-    geom_point(data = plot_black, aes(x = cycle, y = Proportion, color = "blck"), size = 2) + # Points for each cycle
-    geom_errorbar(data = plot_black, aes(x = cycle, ymin = Lower, ymax = Upper), width = 0.2, color = "#ad0000", alpha = 0.7) + # Error bars
-    geom_line(data = plot_hispanic, aes(x = cycle, y = Proportion, color = "hispanic"), group = 1, linewidth = 1, linetype = "solid") + # Line for trend
-    geom_point(data = plot_hispanic, aes(x = cycle, y = Proportion, color = "hispanic"), size = 2) + # Points for each cycle
-    geom_errorbar(data = plot_hispanic, aes(x = cycle, ymin = Lower, ymax = Upper), width = 0.2, color = "#ad0000", alpha = 0.7) + # Error bars
-    geom_line(data = plot_white, aes(x = cycle, y = Proportion, color = "whte"), group = 1, linewidth = 1, linetype = "dashed-dotted") + # Line for trend
-    geom_point(data = plot_white, aes(x = cycle, y = Proportion, color = "whte"), size = 2) + # Points for each cycle
-    geom_errorbar(data = plot_white, aes(x = cycle, ymin = Lower, ymax = Upper), width = 0.2, color = "#ad0000", alpha = 0.7) + # Error bars
+    geom_line(data = plot_other, aes(x = cycle, y = Proportion, color = "Other"), group = 1, linewidth = 1, linetype = "solid") + # Line for trend
+    geom_point(data = plot_other, aes(x = cycle, y = Proportion, color = "Other", shape = Race), size = 4) + # Points for each cycle
+    geom_errorbar(data = plot_other, aes(x = cycle, ymin = Lower_CI, ymax = Upper_CI), width = 0.2, color = "#000000", alpha = 0.5) + # Error bars
+
+    geom_line(data = plot_black, aes(x = cycle, y = Proportion, color = "NH Black"), group = 1, linewidth = 1, linetype = "solid") + # Line for trend
+    geom_point(data = plot_black, aes(x = cycle, y = Proportion, color = "NH Black", shape = Race), size = 4) + # Points for each cycle
+    geom_errorbar(data = plot_black, aes(x = cycle, ymin = Lower_CI, ymax = Upper_CI), width = 0.2, color = "#000000", alpha = 0.7) + # Error bars
+
+    geom_line(data = plot_hispanic, aes(x = cycle, y = Proportion, color = "Hispanic"), group = 1, linewidth = 1, linetype = "solid") + # Line for trend
+    geom_point(data = plot_hispanic, aes(x = cycle, y = Proportion, color = "Hispanic", shape = Race), size = 4) + # Points for each cycle
+    geom_errorbar(data = plot_hispanic, aes(x = cycle, ymin = Lower_CI, ymax = Upper_CI), width = 0.2, color = "#000000", alpha = 0.7) + # Error bars
+
+    geom_line(data = plot_white, aes(x = cycle, y = Proportion, color = "NH White"), group = 1, linewidth = 1, linetype = "solid") + # Line for trend
+    geom_point(data = plot_white, aes(x = cycle, y = Proportion, color = "NH White", shape = Race), size = 4) + # Points for each cycle
+    geom_errorbar(data = plot_white, aes(x = cycle, ymin = Lower_CI, ymax = Upper_CI), width = 0.2, color = "#000000", alpha = 0.7) + # Error bars
+
     labs(
-        title = "Trends of High SRH Among US Adults with Self-Reported Diabetes by Race and Ethnicity",
+        title = "Trends of High SRH Among US Adults with Self-Reported Diabetes by Race/Ethnicity",
         x = "NHANES Cycle",
-        y = "Proportion (%)"
+        y = "Proportion"
     ) +
     theme_general +
-    scale_color_manual(
-        name = "Race and Ethnicity",
-        values = c("other" = "#0401d2", "blck" = "#000000", "hispanic" = "#ad0000", "whte" = "#00ee30"),
-        labels = c("other" = "Other", "blck" = "Black", "hispanic" = "Hispanic", "whte" = "White")
-    ) +
+    scale_color_brewer(palette = "Set1") +
     scale_x_discrete(label = xlabels) +
-    ylim(0, 100)
+    scale_y_continuous(
+        breaks = c(0, 20, 40, 60, 80, 100),
+        labels = c("0", "20", "40", "60", "80", "100")
+    ) +
+    scale_shape_manual(values = c(15, 16, 17, 18)) +
+    facet_wrap(~ factor(Race, levels = c("NH White", "NH Black", "Hispanic", "Other")), ncol = 2) +
+    theme(strip.text = element_text(size = 15)) +
+    theme(legend.position = "none")
 
+
+# save the plot
+ggsave("./out/highsrh_race_ethnicity.png", width = 16, height = 9, dpi = 300)
 
 # END TREND BY RACE AND ETHNICITY
 ###################################
@@ -350,18 +377,154 @@ ggplot(stackedbar_data1, aes(x = cycle, y = value, fill = variable)) +
     labs(
         title = "SRH Distribution Among US Adults with Self-Reported Diabetes",
         x = "NHANES Cycle",
-        y = "Proportion (%)",
+        y = "Proportion",
         fill = "SRH Status"
     ) +
     theme_general +
     scale_x_discrete(label = xlabels) +
     scale_fill_brewer(
-        palette = "RdYlGn"
+        palette = "RdYlGn",
+        direction = -1
     ) +
-    scale_y_continuous(labels = scales::percent)
+    scale_y_continuous(
+        labels = scales::label_percent(),
+        breaks = c(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1)
+    )
 
 #save the plot
 ggsave("./out/srh_distribution.png", width = 10, height = 6)
 
 # END STACKED BAR GRAPH OF THE STATUSES
 #######################################
+
+
+#######################################################
+# TREND GRAPH BY CKD
+#######################################################
+
+# load the data
+plot_ckd <- fread("./out/highsrh_ckd.csv")
+plot_nonckd <- fread("./out/highsrh_nonckd.csv")
+
+# rename the first column
+colnames(plot_ckd)[1] <- "cycle"
+colnames(plot_nonckd)[1] <- "cycle"
+
+# Convert the cycle column to a factor
+plot_ckd[, cycle := factor(cycle)]
+plot_nonckd[, cycle := factor(cycle)]
+
+head(plot_nonckd)
+head(plot_ckd)
+
+
+# create the plot
+
+ggplot() +
+    geom_line(data = plot_ckd, aes(x = cycle, y = Proportion, color = "CKD"), group = 1, linewidth = 1, linetype = "solid") + # Line for trend
+    geom_point(data = plot_ckd, aes(x = cycle, y = Proportion, color = "CKD", shape = CKD), size = 4) + # Points for each cycle
+    geom_errorbar(data = plot_ckd, aes(x = cycle, ymin = Lower_CI, ymax = Upper_CI), width = 0.2, color = "#000000", alpha = 0.5) + # Error bars
+
+    geom_line(data = plot_nonckd, aes(x = cycle, y = Proportion, color = "No-CKD"), group = 1, linewidth = 1, linetype = "solid") + # Line for trend
+    geom_point(data = plot_nonckd, aes(x = cycle, y = Proportion, color = "No-CKD", shape = CKD), size = 4) + # Points for each cycle
+    geom_errorbar(data = plot_nonckd, aes(x = cycle, ymin = Lower_CI, ymax = Upper_CI), width = 0.2, color = "#000000", alpha = 0.5) + # Error bars
+
+    theme_general + 
+    scale_x_discrete(label = xlabels) +
+    scale_color_brewer(palette = "Set1") +
+    scale_y_continuous(
+        breaks = c(0, 20, 40, 60, 80, 100),
+        labels = c("0", "20", "40", "60", "80", "100"),
+        limits = c(0, 100),
+        minor_breaks = c(10, 30, 50, 70, 90)
+    ) +
+
+    labs(
+        title = "Trends of High SRH Among US Adults with Self-Reported Diabetes",
+        x = "NHANES Cycle",
+        y = "Proportion (%)"
+    ) +
+
+    scale_shape_manual(values = c(15, 17), labels = c("CKD", "No-CKD"))
+
+# save the plot
+ggsave("./out/highsrh_ckd.png", width = 10, height = 6)
+
+#######################################################
+# END TREND GRAPH BY CKD
+#######################################################
+
+
+
+
+#######################################################
+# TREND GRAPH BY FAMILY INCOME/POVERTY
+#######################################################
+
+
+# load the data
+plot_poverty <- fread("./out/highsrh_poverty.csv")
+plot_nonpoverty <- fread("./out/highsrh_nonpoverty.csv")
+
+
+# rename the first column
+colnames(plot_poverty)[1] <- "cycle"
+colnames(plot_nonpoverty)[1] <- "cycle"
+
+
+# Convert the cycle column to a factor
+plot_poverty[, cycle := factor(cycle)]
+plot_nonpoverty[, cycle := factor(cycle)]
+
+head(plot_nonpoverty)
+head(plot_poverty)
+
+
+# create the plot
+
+ggplot() +
+    geom_line(data = plot_poverty, aes(x = cycle, y = Proportion, color = "Poverty"), group = 1, linewidth = 1, linetype = "solid") + # Line for trend
+    geom_point(data = plot_poverty, aes(x = cycle, y = Proportion, color = "Poverty", shape = Poverty), size = 4) + # Points for each cycle
+    geom_errorbar(data = plot_poverty, aes(x = cycle, ymin = Lower_CI, ymax = Upper_CI), width = 0.2, color = "#000000", alpha = 0.5) + # Error bars
+
+    geom_line(data = plot_nonpoverty, aes(x = cycle, y = Proportion, color = "Non-Poverty"), group = 1, linewidth = 1, linetype = "solid") + # Line for trend
+    geom_point(data = plot_nonpoverty, aes(x = cycle, y = Proportion, color = "Non-Poverty", shape = Poverty), size = 4) + # Points for each cycle
+    geom_errorbar(data = plot_nonpoverty, aes(x = cycle, ymin = Lower_CI, ymax = Upper_CI), width = 0.2, color = "#000000", alpha = 0.5) + # Error bars
+
+    theme_general + 
+    scale_x_discrete(label = xlabels) +
+    scale_color_brewer(palette = "Set1") +
+    scale_y_continuous(
+        breaks = c(0, 20, 40, 60, 80, 100),
+        labels = c("0", "20", "40", "60", "80", "100"),
+        limits = c(0, 100),
+        minor_breaks = c(10, 30, 50, 70, 90)
+    ) +
+
+    labs(
+        title = "Trends of High SRH Among US Adults with Self-Reported Diabetes",
+        x = "NHANES Cycle",
+        y = "Proportion (%)"
+    ) +
+
+    scale_shape_manual(values = c(15, 17), labels = c("Below Poverty Threshold", "At/Above Poverty Threshold"))
+
+# save the plot
+ggsave("./out/highsrh_poverty.png", width = 10, height = 6)
+
+#######################################################
+# END TREND GRAPH BY FAMILY INCOME/POVERTY
+#######################################################
+
+
+#######################################################
+# TREND GRAPH BY INSURANCE
+#######################################################
+
+
+
+
+
+#######################################################
+# END TREND GRAPH BY INSURANCE
+#######################################################

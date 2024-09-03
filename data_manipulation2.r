@@ -2,7 +2,7 @@
 # dir.create("out", showWarnings = FALSE)
 
 # DUPLICATE THE DATAFRAME LIST and work with that
-nhanes_list2 <- nhanes_list
+# nhanes_list2 <- nhanes_list
 
 # manipulate the combined dataframe
 # convert HSD010(SRH) 7 and 9 to NA

@@ -25,32 +25,30 @@ weighted_nhanes_all <- svydesign(
 )
 
 # get the subset of interest: adults aged 20 and over with self-reported diabetes
-analyze1 <- subset(weighted_nhanes_all, RIDAGEYR >= 20 & DIQ010 == 1 & !is.na(HSD010))
+# analyze1 <- subset(weighted_nhanes_all, RIDAGEYR >= 20 & DIQ010 == 1 & !is.na(HSD010))
 
 
 # Define a function to call svymean and unweighted count
-getSummary <- function(varformula, byformula, design) {
-    # Get mean, stderr, and unweighted sample size
-    c <- svyby(varformula, byformula, design, unwtd.count, na.rm.by = TRUE)
-    p <- svyby(varformula, byformula, design, svymean, na.rm.by = TRUE)
-    outSum <- left_join(select(c, -se), p)
-    outSum
-}
+# getSummary <- function(varformula, byformula, design) {
+#     # Get mean, stderr, and unweighted sample size
+#     c <- svyby(varformula, byformula, design, unwtd.count, na.rm.by = TRUE)
+#     p <- svyby(varformula, byformula, design, svymean, na.rm.by = TRUE)
+#     outSum <- left_join(select(c, -se), p)
+#     outSum
+# }
 
 # try the function
-getSummary(~high_srh, ~RIAGENDR, analyze1)
+# getSummary(~high_srh, ~RIAGENDR, analyze1)
 
 ################################################################################
 # CREATE WEIGHTED DATA SETS FOR EACH YEAR GROUP
 # apply the function to each cycle dataframe in the list
 
-weighted_nhanes_list <- lapply(nhanes_list2, create_survey_design)
+weighted_nhanes_list <- lapply(nhanes_list, create_survey_design)
 
 # rename the list, adding "w" to the name
 names(weighted_nhanes_list) <- c("nhanes01_02w", "nhanes03_04w", "nhanes05_06w", "nhanes07_08w", "nhanes09_10w", "nhanes11_12w", "nhanes13_14w", "nhanes15_16w", "nhanes17_18w")
 
-# duplicate the weighted list before modifying
-weighted_nhanes_list2 <- weighted_nhanes_list
 
 # subset the dataframes to only include rows with non-missing age, age >= 20 and SRH
 
@@ -121,37 +119,51 @@ write.csv(proportion_srh, file = "./out/srh_distribution1.csv")
 ###########################
 # BEGIN STRATIFIED ANALYSIS
 ################################################################
-# calculate the proportion of 'yes' (1) for high_srh by age group, <65 and >=65
+# calculate the proportion of 'yes' (1) for high_srh by AGE GROUP, 20-39, 40-64 and >=65
 
 # subset the dataframes to only include rows with non-missing age, age >= 65 and SRH
 highsrh_gt65 <- lapply(weighted_nhanes_list, subset, RIDAGEYR >= 65)
 # calculate the proportion of 'yes' (1) for high_srh
 prop_highsrh_gt65 <- do.call(rbind, lapply(highsrh_gt65, calculate_svy_prop, "high_srh"))
-colnames(prop_highsrh_gt65) <- c("Unweighted_count", "Proportion", "Lower", "Upper", "SE")
+# add a column for age group
+prop_highsrh_gt65$Age <- ">=65"
 # save to csv
 write.csv(prop_highsrh_gt65, file = "./out/highsrh_gt65.csv")
 
 
-# subset the dataframes to only include rows with non-missing age, age < 65 and SRH
-highsrh_lt65 <- lapply(weighted_nhanes_list, subset, RIDAGEYR < 65)
+# subset the dataframes to only include rows with non-missing age, age  40-64 and SRH
+highsrh_4065 <- lapply(weighted_nhanes_list, subset, RIDAGEYR>=40, RIDAGEYR < 65)
 # calculate the proportion of 'yes' (1) for high_srh
-prop_highsrh_lt65 <- do.call(rbind, lapply(highsrh_lt65, calculate_svy_prop, "high_srh"))
-colnames(prop_highsrh_lt65) <- c("Unweighted_count", "Proportion", "Lower", "Upper", "SE")
+prop_highsrh_4065 <- do.call(rbind, lapply(highsrh_4065, calculate_svy_prop, "high_srh"))
+# add a column for age group
+prop_highsrh_4065$Age <- "40-64"
 # save to csv
-write.csv(prop_highsrh_lt65, file = "./out/highsrh_lt65.csv")
+write.csv(prop_highsrh_4065, file = "./out/highsrh_4065.csv")
 
+# subset the dataframes to only include rows with non-missing age, age  20-39 and SRH
+highsrh_lt40 <- lapply(weighted_nhanes_list, subset, RIDAGEYR < 40)
+# calculate the proportion of 'yes' (1) for high_srh
+prop_highsrh_lt40 <- do.call(rbind, lapply(highsrh_lt40, calculate_svy_prop, "high_srh"))
+# add a column for age group
+prop_highsrh_lt40$Age <- "20-39"
+# save to csv
+write.csv(prop_highsrh_lt40, file = "./out/highsrh_lt40.csv")
 
+# bind all the proportions together and save to csv
+highsrh_by_age <- rbind(prop_highsrh_lt40, prop_highsrh_4065, prop_highsrh_gt65)
+write.csv(highsrh_by_age, file = "./out/highsrh_by_age.csv")
 
 
 
 ##############################################################################
-# calculate the proportion of 'yes' (1) for high_srh by sex
+# calculate the proportion of 'yes' (1) for high_srh by SEX
 
 # subset the dataframes to only include rows with non-missing sex and SRH
 highsrh_male <- lapply(weighted_nhanes_list, subset, RIAGENDR == 1)
 # calculate the proportion of 'yes' (1) for high_srh
 prop_highsrh_male <- do.call(rbind, lapply(highsrh_male, calculate_svy_prop, "high_srh"))
-colnames(prop_highsrh_male) <- c("Unweighted_count", "Proportion", "Lower", "Upper", "SE")
+# add a column for sex
+prop_highsrh_male$Sex <- "Male"
 # save to csv
 write.csv(prop_highsrh_male, file = "./out/highsrh_male.csv")
 
@@ -159,10 +171,15 @@ write.csv(prop_highsrh_male, file = "./out/highsrh_male.csv")
 highsrh_female <- lapply(weighted_nhanes_list, subset, RIAGENDR == 2)
 # calculate the proportion of 'yes' (1) for high_srh
 prop_highsrh_female <- do.call(rbind, lapply(highsrh_female, calculate_svy_prop, "high_srh"))
-colnames(prop_highsrh_female) <- c("Unweighted_count", "Proportion", "Lower", "Upper", "SE")
+# add a column for sex
+prop_highsrh_female$Sex <- "Female"
 # save to csv
 write.csv(prop_highsrh_female, file = "./out/highsrh_female.csv")
 
+
+# bind all the proportions together and save to csv
+highsrh_by_sex <- rbind(prop_highsrh_male, prop_highsrh_female)
+write.csv(highsrh_by_sex, file = "./out/highsrh_by_sex.csv")
 
 
 #################################################################
@@ -172,7 +189,8 @@ write.csv(prop_highsrh_female, file = "./out/highsrh_female.csv")
 highsrh_white <- lapply(weighted_nhanes_list, subset, RACE == 1)
 # calculate the proportion of 'yes' (1) for high_srh
 prop_highsrh_white <- do.call(rbind, lapply(highsrh_white, calculate_svy_prop, "high_srh"))
-colnames(prop_highsrh_white) <- c("Unweighted_count", "Proportion", "Lower", "Upper", "SE")
+# add a column for race
+prop_highsrh_white$Race <- "NH White"
 # save to csv
 write.csv(prop_highsrh_white, file = "./out/highsrh_white.csv")
 
@@ -180,7 +198,8 @@ write.csv(prop_highsrh_white, file = "./out/highsrh_white.csv")
 highsrh_black <- lapply(weighted_nhanes_list, subset, RACE == 2)
 # calculate the proportion of 'yes' (1) for high_srh
 prop_highsrh_black <- do.call(rbind, lapply(highsrh_black, calculate_svy_prop, "high_srh"))
-colnames(prop_highsrh_black) <- c("Unweighted_count", "Proportion", "Lower", "Upper", "SE")
+# add a column for race
+prop_highsrh_black$Race <- "NH Black"
 # save to csv
 write.csv(prop_highsrh_black, file = "./out/highsrh_black.csv")
 
@@ -188,7 +207,8 @@ write.csv(prop_highsrh_black, file = "./out/highsrh_black.csv")
 highsrh_hispanic <- lapply(weighted_nhanes_list, subset, RACE == 3)
 # calculate the proportion of 'yes' (1) for high_srh
 prop_highsrh_hispanic <- do.call(rbind, lapply(highsrh_hispanic, calculate_svy_prop, "high_srh"))
-colnames(prop_highsrh_hispanic) <- c("Unweighted_count", "Proportion", "Lower", "Upper", "SE")
+# add a column for race
+prop_highsrh_hispanic$Race <- "Hispanic"
 # save to csv
 write.csv(prop_highsrh_hispanic, file = "./out/highsrh_hispanic.csv")
 
@@ -196,10 +216,15 @@ write.csv(prop_highsrh_hispanic, file = "./out/highsrh_hispanic.csv")
 highsrh_other <- lapply(weighted_nhanes_list, subset, RACE == 4)
 # calculate the proportion of 'yes' (1) for high_srh
 prop_highsrh_other <- do.call(rbind, lapply(highsrh_other, calculate_svy_prop, "high_srh"))
-colnames(prop_highsrh_other) <- c("Unweighted_count", "Proportion", "Lower", "Upper", "SE")
+# add a column for race
+prop_highsrh_other$Race <- "Other"
 # save to csv
 write.csv(prop_highsrh_other, file = "./out/highsrh_other.csv")
 
+
+# bind all the proportions together and save to csv
+highsrh_by_race <- rbind(prop_highsrh_white, prop_highsrh_black, prop_highsrh_hispanic, prop_highsrh_other)
+write.csv(highsrh_by_race, file = "./out/highsrh_by_race.csv")
 
 
 #################################
@@ -209,7 +234,8 @@ write.csv(prop_highsrh_other, file = "./out/highsrh_other.csv")
 highsrh_ckd <- lapply(weighted_nhanes_list, subset, CKD == 1)
 # calculate the proportion of 'yes' (1) for high_srh
 prop_highsrh_ckd <- do.call(rbind, lapply(highsrh_ckd, calculate_svy_prop, "high_srh"))
-colnames(prop_highsrh_ckd) <- c("Unweighted_count", "Proportion", "Lower", "Upper", "SE")
+# add a column for CKD
+prop_highsrh_ckd$CKD <- "CKD"
 # save to csv
 write.csv(prop_highsrh_ckd, file = "./out/highsrh_ckd.csv")
 
@@ -217,19 +243,25 @@ write.csv(prop_highsrh_ckd, file = "./out/highsrh_ckd.csv")
 highsrh_nonckd <- lapply(weighted_nhanes_list, subset, CKD == 0)
 # calculate the proportion of 'yes' (1) for high_srh
 prop_highsrh_nonckd <- do.call(rbind, lapply(highsrh_nonckd, calculate_svy_prop, "high_srh"))
-colnames(prop_highsrh_nonckd) <- c("Unweighted_count", "Proportion", "Lower", "Upper", "SE")
+# add a column for CKD
+prop_highsrh_nonckd$CKD <- "No-CKD"
 # save to csv
 write.csv(prop_highsrh_nonckd, file = "./out/highsrh_nonckd.csv")
 
 
+# bind all the proportions together and save to csv
+highsrh_by_ckd <- rbind(prop_highsrh_ckd, prop_highsrh_nonckd)
+write.csv(highsrh_by_ckd, file = "./out/highsrh_by_ckd.csv")
+
 
 #################################
-# by poverty status
+# by poverty status/family income
 
 highsrh_poverty <- lapply(weighted_nhanes_list, subset, INDFMPIR < 1)
 # calculate the proportion of 'yes' (1) for high_srh
 prop_highsrh_poverty <- do.call(rbind, lapply(highsrh_poverty, calculate_svy_prop, "high_srh"))
-colnames(prop_highsrh_poverty) <- c("Unweighted_count", "Proportion", "Lower", "Upper", "SE")
+# add a column for poverty
+prop_highsrh_poverty$Poverty <- "Below-threshold"
 # save to csv
 write.csv(prop_highsrh_poverty, file = "./out/highsrh_poverty.csv")
 
@@ -237,10 +269,15 @@ write.csv(prop_highsrh_poverty, file = "./out/highsrh_poverty.csv")
 highsrh_nonpoverty <- lapply(weighted_nhanes_list, subset, INDFMPIR >= 1)
 # calculate the proportion of 'yes' (1) for high_srh
 prop_highsrh_nonpoverty <- do.call(rbind, lapply(highsrh_nonpoverty, calculate_svy_prop, "high_srh"))
-colnames(prop_highsrh_nonpoverty) <- c("Unweighted_count", "Proportion", "Lower", "Upper", "SE")
+# add a column for poverty
+prop_highsrh_nonpoverty$Poverty <- "At/Above-threshold"
 # save to csv
 write.csv(prop_highsrh_nonpoverty, file = "./out/highsrh_nonpoverty.csv")
 
+
+# bind all the proportions together and save to csv
+highsrh_by_poverty <- rbind(prop_highsrh_poverty, prop_highsrh_nonpoverty)
+write.csv(highsrh_by_poverty, file = "./out/highsrh_by_poverty.csv")
 
 
 #################################
