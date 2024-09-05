@@ -40,7 +40,7 @@ calculate_svy_prop <- function(design, x) {
 
     # Combine into one data frame
     full_table <- data.frame(
-        "Unweighted Count" = unweighted_counts,
+        "Unweighted_Count" = unweighted_counts,
         "Proportion" = as.numeric(weighted_props),
         "Lower_CI" = Lower_CI,
         "Upper_CI" = Upper_CI,
@@ -66,7 +66,17 @@ weighted_nhanes_all <- svydesign(
 # adults aged 20 and over with self-reported diabetes
 analyze1 <- subset(
     weighted_nhanes_all,
-    RIDAGEYR >= 20 & DIQ010 == 1 & !is.na(HSD010)
+    RIDAGEYR >= 20 & DIQ010 == 1 & !is.na(HSD010) 
+)
+
+analyze1 <- subset(
+    analyze1,
+    !is.na(hypercholesterolemia) &
+    !is.na(hypertension) &
+    !is.na(diabetes_duration) &
+    !is.na(CVD) &
+    !is.na(insurance) &
+    !is.na(EDULEVEL)
 )
 
 # create survey design objects for each 2 year cycle
@@ -88,6 +98,21 @@ for (i in 1:length(weighted_nhanes_list)) {
     )
 }
 
+# the hypertionsion variable needs to be derived for the nhanes_list
+# for this to work
+
+# subset the dataframes to only include rows with non-missing select variables
+for (i in 1:length(weighted_nhanes_list)) {
+    weighted_nhanes_list[[i]] <- subset(
+        weighted_nhanes_list[[i]],
+        !is.na(hypercholesterolemia) &
+        !is.na(hypertension) &
+        !is.na(diabetes_duration) &
+        !is.na(CVD) &
+        !is.na(insurance) &
+        !is.na(EDULEVEL)
+    )
+}
 
 
 
@@ -114,7 +139,7 @@ colnames(proportion_srh) <- c(
 )
 # save as excel file
 write.xlsx(
-    proportion_srh, "./out/srh_distribution.xlsx",
+    proportion_srh, "./out/srh_distribution1.xlsx",
     rowNames = TRUE
 )
 write.csv(proportion_srh, file = "./out/srh_distribution.csv")
@@ -293,12 +318,12 @@ write.csv(prop_lowsrh_insured, file = "./out/lowsrh_insured.csv")
 ########################
 lowsrh_belowhighschool <- lapply(weighted_nhanes_list, subset, EDULEVEL == 1)
 # calculate the proportion of low_srh
-prop_lowsrh_education <- do.call(
-    rbind, lapply(lowsrh_education, calculate_svy_prop, "low_srh")
+prop_lowsrh_belowhighschool <- do.call(
+    rbind, lapply(lowsrh_belowhighschool, calculate_svy_prop, "low_srh")
 )
 # add a column for education
-prop_lowsrh_education$Education <- "Less than high school"
-write.csv(prop_lowsrh_education, file = "./out/lowsrh_belowhighschool.csv")
+prop_lowsrh_belowhighschool$Education <- "Less than high school"
+write.csv(prop_lowsrh_belowhighschool, file = "./out/lowsrh_belowhighschool.csv")
 
 lowsrh_highschool <- lapply(weighted_nhanes_list, subset, EDULEVEL == 2)
 # calculate the proportion of low_srh

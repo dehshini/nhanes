@@ -1,5 +1,5 @@
 # create directory for figures/tables
-# dir.create("figures_tables", showWarnings = FALSE)
+# dir.create("figures", showWarnings = FALSE)
 
 
 ## TABLE
