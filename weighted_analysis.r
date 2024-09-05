@@ -91,7 +91,7 @@ calculate_svy_prop <- function(design, x) {
 ################################################################################
 
 
-# high srh. excellent and very good
+# high srh. excellent, very good, good
 proportion_highsrh_weighted <- do.call(rbind, lapply(weighted_nhanes_list, calculate_svy_prop, "high_srh"))
 #rename the columns
 colnames(proportion_highsrh_weighted) <- c("Unweighted_count", "Proportion", "Lower", "Upper", "SE")

@@ -8,6 +8,14 @@ nhanes_all$HSD010 <- ifelse(
     nhanes_all$HSD010 %in% c(7, 9), NA, nhanes_all$HSD010
 )
 
+# convert HSD010 7 and 9 to NA for each dataframe in list
+for (i in 1:length(nhanes_list)) {
+    nhanes_list[[i]]$HSD010 <- ifelse(
+        nhanes_list[[i]]$HSD010 %in% c(7, 9), NA,
+        nhanes_list[[i]]$HSD010
+    )
+}
+
 # # exclude those whose age is less than 20
 nhanes_analytic <- subset(nhanes_all, !is.na(RIDAGEYR) & RIDAGEYR >= 20)
 nrow(nhanes_analytic)
