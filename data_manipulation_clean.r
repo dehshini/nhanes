@@ -1,8 +1,6 @@
 # create an output directory
-# dir.create("out", showWarnings = FALSE)
+dir.create("out", showWarnings = FALSE)
 
-# DUPLICATE THE DATAFRAME LIST and work with that
-# nhanes_list2 <- nhanes_list
 
 # manipulate the combined dataframe
 # convert HSD010(SRH) 7 and 9 to NA
@@ -19,6 +17,36 @@ nrow(nhanes_analytic)
 # # # keep only those with data on SRH
 nhanes_analytic <- subset(nhanes_analytic, !is.na(HSD010))
 nrow(nhanes_analytic)
+
+
+# keep only the needed variables
+nhanes_analytic_small <- nhanes_analytic[, c(
+    "SEQN",
+    "RIDAGEYR",
+    "DIQ010",
+    "HSD010",
+    "AGEGROUP",
+    "FEMALE",
+    "EDULEVEL",
+    "RACE",
+    "FAM_INCOME",
+    "BMICAT",
+    "current_smoker",
+    "HBA1C_CAT",
+    "diabetes_duration",
+    "hypertension",
+    "hypercholesterolemia",
+    "CVD",
+    "CKD",
+    "low_srh",
+    "insurance"
+)]
+
+# missing proportions
+plot_missing(nhanes_analytic_small)
+missing_data <- profile_missing(nhanes_analytic_small)
+write.csv(missing_data, file = "./out/missing_data_before.csv")
+
 
 # exclude those who have missing data on hypercholesterolemia
 nhanes_analytic <- subset(nhanes_analytic, !is.na(hypercholesterolemia))
@@ -39,7 +67,8 @@ nrow(nhanes_analytic)
 nhanes_analytic <- subset(nhanes_analytic, !is.na(EDULEVEL))
 nrow(nhanes_analytic)
 
-# keep only the needed variables
+
+# rerun nhanes analytic small.
 nhanes_analytic_small <- nhanes_analytic[, c(
     "SEQN",
     "RIDAGEYR",
@@ -50,16 +79,11 @@ nhanes_analytic_small <- nhanes_analytic[, c(
     "EDULEVEL",
     "RACE",
     "FAM_INCOME",
-    "BMXBMI",
     "BMICAT",
     "current_smoker",
-    "HBA1C",
     "HBA1C_CAT",
     "diabetes_duration",
-    "SBP",
-    "DBP",
     "hypertension",
-    "LBXTC",
     "hypercholesterolemia",
     "CVD",
     "CKD",
@@ -67,26 +91,14 @@ nhanes_analytic_small <- nhanes_analytic[, c(
     "insurance"
 )]
 
-
-
 summary(nhanes_analytic_small)
 # total n
 nrow(nhanes_analytic_small)
 # number of SRH, 0=high, 1=low
 table(nhanes_analytic_small$low_srh, useNA = "ifany")
 
-# missing proportions
+# check missing proportions now
 plot_missing(nhanes_analytic_small)
 missing_data <- profile_missing(nhanes_analytic_small)
-write.csv(missing_data, file = "./out/missing_data.csv")
+write.csv(missing_data, file = "./out/missing_data_after.csv")
 
-# remove NAs from variables that have missing < 2%
-
-# for (var in names(nhanes_analytic_small)) {
-#     # Calculate the percentage of NA values for the current variable
-#     na_percentage <- nhanes_analytic_small[, mean(is.na(get(var)))]
-#     # If the percentage of NAs is less than 2%, remove rows with NA
-#     if (na_percentage < 0.02) {
-#         nhanes_analytic_small <- nhanes_analytic_small[!is.na(get(var))]
-#     }
-# }

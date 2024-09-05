@@ -282,12 +282,14 @@ write.csv(highsrh_by_poverty, file = "./out/highsrh_by_poverty.csv")
 
 #################################
 # by insurance status
+# insurance status, 0=no insurance, 1=private, 2=public
 
 
 highsrh_noninsured <- lapply(weighted_nhanes_list, subset, INSURANCE == 0)
 # calculate the proportion of 'yes' (1) for high_srh
 prop_highsrh_noninsured <- do.call(rbind, lapply(highsrh_noninsured, calculate_svy_prop, "high_srh"))
-colnames(prop_highsrh_noninsured) <- c("Unweighted_count", "Proportion", "Lower", "Upper", "SE")
+# add a column for insurance
+prop_highsrh_noninsured$Insurance <- "Non-insured"
 # save to csv
 write.csv(prop_highsrh_noninsured, file = "./out/highsrh_noninsured.csv")
 
@@ -295,7 +297,8 @@ write.csv(prop_highsrh_noninsured, file = "./out/highsrh_noninsured.csv")
 highsrh_priv_insurance <- lapply(weighted_nhanes_list, subset, INSURANCE == 1)
 # calculate the proportion of 'yes' (1) for high_srh
 prop_highsrh_priv_insurance <- do.call(rbind, lapply(highsrh_priv_insurance, calculate_svy_prop, "high_srh"))
-colnames(prop_highsrh_priv_insurance) <- c("Unweighted_count", "Proportion", "Lower", "Upper", "SE")
+# add a column for insurance
+prop_highsrh_priv_insurance$Insurance <- "Private"
 # save to csv
 write.csv(prop_highsrh_priv_insurance, file = "./out/highsrh_priv_insurance.csv")
 
@@ -303,7 +306,8 @@ write.csv(prop_highsrh_priv_insurance, file = "./out/highsrh_priv_insurance.csv"
 highsrh_pub_insurance <- lapply(weighted_nhanes_list, subset, INSURANCE == 2)
 # calculate the proportion of 'yes' (1) for high_srh
 prop_highsrh_pub_insurance <- do.call(rbind, lapply(highsrh_pub_insurance, calculate_svy_prop, "high_srh"))
-colnames(prop_highsrh_pub_insurance) <- c("Unweighted_count", "Proportion", "Lower", "Upper", "SE")
+# add a column for insurance
+prop_highsrh_pub_insurance$Insurance <- "Public"
 # save to csv
 write.csv(prop_highsrh_pub_insurance, file = "./out/highsrh_pub_insurance.csv")
 

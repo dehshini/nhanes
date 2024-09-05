@@ -50,55 +50,45 @@ nhanes_all$HSD010 <- ifelse(
 
 
 # # exclude those whose age is less than 20
-nhanes_analytic <- subset(nhanes_all, !is.na(RIDAGEYR) & RIDAGEYR >= 20)
-nrow(nhanes_analytic)
-# # # keep only those with self reported diabetes
-nhanes_analytic <- subset(nhanes_analytic, DIQ010 == 1)
-nrow(nhanes_analytic)
-# # # keep only those with data on SRH
-nhanes_analytic <- subset(nhanes_analytic, !is.na(HSD010))
-nrow(nhanes_analytic)
+# nhanes_analytic <- subset(nhanes_all, !is.na(RIDAGEYR) & RIDAGEYR >= 20)
+# nrow(nhanes_analytic)
+# # # # keep only those with self reported diabetes
+# nhanes_analytic <- subset(nhanes_analytic, DIQ010 == 1)
+# nrow(nhanes_analytic)
+# # # # keep only those with data on SRH
+# nhanes_analytic <- subset(nhanes_analytic, !is.na(HSD010))
+# nrow(nhanes_analytic)
 
-# keep only the needed variables
-nhanes_analytic_small <- nhanes_analytic[, c(
-    "SEQN",
-    "RIDAGEYR",
-    "DIQ010",
-    "HSD010",
-    "AGEGROUP",
-    "FEMALE",
-    "EDULEVEL",
-    "insurance",
-    "RACE",
-    "FAM_INCOME",
-    "BMXBMI",
-    "BMICAT",
-    "current_smoker",
-    "HBA1C",
-    "HBA1C_CAT",
-    "diabetes_duration",
-    "SBP",
-    "DBP",
-    "hypertension",
-    "LBXTC",
-    "hypercholesterolemia",
-    "CVD",
-    "CKD",
-    "low_srh",
-    "insurance"
-)]
+# # keep only the needed variables
+# nhanes_analytic_small <- nhanes_analytic[, c(
+#     "SEQN",
+#     "RIDAGEYR",
+#     "DIQ010",
+#     "HSD010",
+#     "AGEGROUP",
+#     "FEMALE",
+#     "EDULEVEL",
+#     "insurance",
+#     "RACE",
+#     "FAM_INCOME",
+#     "BMXBMI",
+#     "BMICAT",
+#     "current_smoker",
+#     "HBA1C",
+#     "HBA1C_CAT",
+#     "diabetes_duration",
+#     "SBP",
+#     "DBP",
+#     "hypertension",
+#     "LBXTC",
+#     "hypercholesterolemia",
+#     "CVD",
+#     "CKD",
+#     "low_srh",
+#     "insurance"
+# )]
 
 
 # remove NAs from variables that have missing < 2%
 # nhanes_analytic_small <- nhanes_analytic[, lapply(.SD, function(x) ifelse(sum(is.na(x)) < 0.02*nrow(nhanes_analytic), x, NA)), .SDcols = names(nhanes_analytic)]
 
-summary(nhanes_analytic_small)
-# total n
-nrow(nhanes_analytic_small)
-# number of SRH, 0=high, 1=low
-table(nhanes_analytic_small$low_srh, useNA = "ifany")
-# proportion of SRH
-prop.table(table(nhanes_analytic_small$low_srh, useNA = "ifany"))
-
-# check if there are any NA's, as proportions
-plot_missing(nhanes_analytic_small)

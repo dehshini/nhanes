@@ -163,7 +163,7 @@ ggplot(plot_data, aes(x = cycle, y = Proportion)) +
     geom_point(color = "#2d03ff", size = 2) + # Points for each cycle
     geom_errorbar(aes(ymin = Lower, ymax = Upper), width = 0.1, color = "#999999", alpha = 0.7) + # Error bars
     labs(
-        title = "Trends of High SRH Among US Adults with Self-Reported Diabetes",
+        title = "Trends of Low SRH Among US Adults with Self-Reported Diabetes",
         x = "NHANES Cycle",
         y = "Proportion (%)"
     ) +
@@ -484,14 +484,14 @@ head(plot_poverty)
 
 ggplot() +
     geom_line(data = plot_poverty, aes(x = cycle, y = Proportion, color = "Poverty"), group = 1, linewidth = 1, linetype = "solid") + # Line for trend
-    geom_point(data = plot_poverty, aes(x = cycle, y = Proportion, color = "Poverty", shape = Poverty), size = 4) + # Points for each cycle
+    geom_point(data = plot_poverty, aes(x = cycle, y = Proportion, color = "Poverty"), size = 4) + # Points for each cycle
     geom_errorbar(data = plot_poverty, aes(x = cycle, ymin = Lower_CI, ymax = Upper_CI), width = 0.2, color = "#000000", alpha = 0.5) + # Error bars
 
     geom_line(data = plot_nonpoverty, aes(x = cycle, y = Proportion, color = "Non-Poverty"), group = 1, linewidth = 1, linetype = "solid") + # Line for trend
-    geom_point(data = plot_nonpoverty, aes(x = cycle, y = Proportion, color = "Non-Poverty", shape = Poverty), size = 4) + # Points for each cycle
+    geom_point(data = plot_nonpoverty, aes(x = cycle, y = Proportion, color = "Non-Poverty"), size = 4) + # Points for each cycle
     geom_errorbar(data = plot_nonpoverty, aes(x = cycle, ymin = Lower_CI, ymax = Upper_CI), width = 0.2, color = "#000000", alpha = 0.5) + # Error bars
 
-    theme_general + 
+    theme_general +
     scale_x_discrete(label = xlabels) +
     scale_color_brewer(palette = "Set1") +
     scale_y_continuous(
@@ -500,17 +500,16 @@ ggplot() +
         limits = c(0, 100),
         minor_breaks = c(10, 30, 50, 70, 90)
     ) +
-
     labs(
         title = "Trends of High SRH Among US Adults with Self-Reported Diabetes",
         x = "NHANES Cycle",
         y = "Proportion (%)"
-    ) +
+    )
 
-    scale_shape_manual(values = c(15, 17), labels = c("Below Poverty Threshold", "At/Above Poverty Threshold"))
+    #scale_shape_manual(values = c(15, 17), labels = c("Below Poverty Threshold", "At/Above Poverty Threshold"))
 
 # save the plot
-ggsave("./out/highsrh_poverty.png", width = 10, height = 6)
+ggsave("./out/highsrh_poverty.png", width = 12, height = 6)
 
 #######################################################
 # END TREND GRAPH BY FAMILY INCOME/POVERTY
@@ -522,7 +521,58 @@ ggsave("./out/highsrh_poverty.png", width = 10, height = 6)
 #######################################################
 
 
+# load the data
+plot_insurance <- fread("./out/highsrh_noninsured.csv")
+plot_insurance1 <- fread("./out/highsrh_priv_insurance.csv")
+plot_insurance2 <- fread("./out/highsrh_pub_insurance.csv")
 
+
+# rename the first column
+colnames(plot_insurance)[1] <- "cycle"
+colnames(plot_insurance1)[1] <- "cycle"
+colnames(plot_insurance2)[1] <- "cycle"
+
+# Convert the cycle column to a factor
+plot_insurance[, cycle := factor(cycle)]
+plot_insurance1[, cycle := factor(cycle)]
+plot_insurance2[, cycle := factor(cycle)]
+
+head(plot_insurance)
+head(plot_insurance1)
+head(plot_insurance2)
+
+# create the plot
+
+ggplot() +
+    geom_line(data = plot_insurance, aes(x = cycle, y = Proportion, color = "Non-Insured"), group = 1, linewidth = 1, linetype = "solid") + # Line for trend
+    geom_point(data = plot_insurance, aes(x = cycle, y = Proportion, color = "Non-Insured"), size = 4) + # Points for each cycle
+    geom_errorbar(data = plot_insurance, aes(x = cycle, ymin = Lower_CI, ymax = Upper_CI), width = 0.2, color = "#000000", alpha = 0.5) + # Error bars
+
+    geom_line(data = plot_insurance1, aes(x = cycle, y = Proportion, color = "Private Insurance"), group = 1, linewidth = 1, linetype = "solid") + # Line for trend
+    geom_point(data = plot_insurance1, aes(x = cycle, y = Proportion, color = "Private Insurance"), size = 4) + # Points for each cycle
+    geom_errorbar(data = plot_insurance1, aes(x = cycle, ymin = Lower_CI, ymax = Upper_CI), width = 0.2, color = "#000000", alpha = 0.5) + # Error bars
+
+    geom_line(data = plot_insurance2, aes(x = cycle, y = Proportion, color = "Public Insurance"), group = 1, linewidth = 1, linetype = "solid") + # Line for trend
+    geom_point(data = plot_insurance2, aes(x = cycle, y = Proportion, color = "Public Insurance"), size = 4) + # Points for each cycle
+    geom_errorbar(data = plot_insurance2, aes(x = cycle, ymin = Lower_CI, ymax = Upper_CI), width = 0.2, color = "#000000", alpha = 0.5) + # Error bars
+
+    theme_general +
+    scale_x_discrete(label = xlabels) +
+    scale_color_brewer(palette = "Set1") +
+    scale_y_continuous(
+        breaks = c(0, 20, 40, 60, 80, 100),
+        labels = c("0", "20", "40", "60", "80", "100"),
+        limits = c(0, 100),
+        minor_breaks = c(10, 30, 50, 70, 90)
+    ) +
+    labs(
+        title = "Trends of High SRH Among US Adults with Self-Reported Diabetes by Insurance Status",
+        x = "NHANES Cycle",
+        y = "Proportion (%)"
+    )
+
+# save the plot
+ggsave("./out/highsrh_insurance.png", width = 14, height = 6)
 
 
 #######################################################
