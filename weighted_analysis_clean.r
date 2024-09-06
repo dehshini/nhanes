@@ -98,8 +98,8 @@ for (i in 1:length(weighted_nhanes_list)) {
     )
 }
 
-# the hypertionsion variable needs to be derived for the nhanes_list
-# for this to work
+# the hypertionsion and diabetes duration variables
+# need to be derived for the nhanes_list for this to work
 
 # subset the dataframes to only include rows with non-missing select variables
 for (i in 1:length(weighted_nhanes_list)) {
@@ -292,7 +292,7 @@ write.csv(prop_lowsrh_nonpoverty, file = "./out/lowsrh_nonpoverty.csv")
 #######################
 # by INSURANCE STATUS, non-insured and insured
 #######################
-lowsrh_noninsured <- lapply(weighted_nhanes_list, subset, INSURANCE == 0)
+lowsrh_noninsured <- lapply(weighted_nhanes_list, subset, insurance == 0)
 # calculate the proportion of low_srh
 prop_lowsrh_noninsured <- do.call(
     rbind, lapply(lowsrh_noninsured, calculate_svy_prop, "low_srh")
@@ -302,7 +302,7 @@ prop_lowsrh_noninsured$Insurance <- "Non-insured"
 write.csv(prop_lowsrh_noninsured, file = "./out/lowsrh_noninsured.csv")
 
 lowsrh_insured <- lapply(
-    weighted_nhanes_list, subset, INSURANCE == 1 | INSURANCE == 2
+    weighted_nhanes_list, subset, insurance == 1 | insurance == 2
 )
 # calculate the proportion of low_srh
 prop_lowsrh_insured <- do.call(

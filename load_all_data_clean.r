@@ -197,7 +197,7 @@ nhanes_all[, DID040Q := ifelse(
   DID040Q == 99999 | DID040Q == 77777, NA, DID040Q
 )]
 nhanes_all[, DID040 := ifelse(
-  DID040 == 999 | DID040 == 666, NA, DID040
+  DID040 == 999 | DID040 == 666 | DID040 == 777, NA, DID040
 )]
 # age diagnosed. this is held in different variables
 nhanes_all[, age_diabts := DID040Q]
@@ -234,16 +234,19 @@ nhanes_all[, DBP := ifelse(DBP == 0, NA, DBP)]
 # BP meds
 nhanes_all[, bpmeds := BPQ040A]
 
-nhanes_all[, bpmeds := ifelse(
-  is.na(bpmeds) & (BPQ010 == 5 | BPQ020 == 2), 0,
-  ifelse(BPQ040A == 9, NA,
-    ifelse(BPQ040A == 2, 0, BPQ040A)
-  )
+nhanes_all[, bpmeds := fcase(
+  BPQ040A == 9 | BPQ040A == 7, NA_real_,
+  is.na(BPQ040A) & (BPQ010 == 5 | BPQ020 == 2), 0,
+  BPQ040A == 2, 0,
+  BPQ040A == 1, 1,
+  default = NA_real_
 )]
 
 # hypertension
-nhanes_all[, hypertension := ifelse(
-  SBP >= 130 | DBP >= 80 | bpmeds == 1, 1, 0
+nhanes_all[, hypertension := fcase(
+  SBP >= 130 | DBP >= 80 | bpmeds == 1, 1, 
+  SBP < 130 | DBP < 80 | bpmeds == 0, 0,
+  default = NA_real_
 )]
 
 # cholesterol meds
@@ -461,7 +464,7 @@ for (cycle in nhanes_list) {
     has_HIQ011butnotG <- "HIQ011" %in% names(cycle) & !("HIQ031G" %in% names(cycle))
 
     if (has_HIQ011) {
-        cycle[, INSURANCE := fcase(
+        cycle[, insurance := fcase(
             HIQ011 == 2, 0,
             HIQ031G == 20 | HIQ031H == 21 | HIQ031I == 22 |
                 HIQ031B == 15 | HIQ031C == 16 | HIQ031D == 17 |
@@ -471,7 +474,7 @@ for (cycle in nhanes_list) {
         )]
         print("Processed with HIQ011")
     } else if (has_HID010) {
-        cycle[, INSURANCE := fcase(
+        cycle[, insurance := fcase(
             HID010 == 2, 0,
             HID030B == 1 | HID030C == 1 | HID030D == 1, 2,
             HID010 == 1 & HID030A == 1, 1,
@@ -479,7 +482,7 @@ for (cycle in nhanes_list) {
         )]
         print("Processed with HID010")
     } else if (has_HIQ011butnotG) {
-        cycle[, INSURANCE := fcase(
+        cycle[, insurance := fcase(
             HIQ011 == 2, 0,
             HIQ031H == 21 | HIQ031I == 22 |
                 HIQ031B == 15 | HIQ031C == 16 | HIQ031D == 17 |
@@ -492,6 +495,110 @@ for (cycle in nhanes_list) {
         print("Could not find HIQ011 or HID010 in the data")
     }
 
-    # Check the distribution of the INSURANCE variable
-    print(table(cycle$INSURANCE, useNA = "ifany"))
+    # Check the distribution of the insurance variable
+    print(table(cycle$insurance, useNA = "ifany"))
 }
+
+# bpmeds
+for (cycle in nhanes_list) {
+  cycle[, bpmeds := BPQ040A]
+  # Check if the BPQ010 variable exists
+  if ("BPQ010" %in% names(cycle)) {
+    cycle[, bpmeds := fcase(
+      BPQ040A == 9 | BPQ040A == 7, NA_real_,
+      is.na(BPQ040A) & (BPQ010 == 5 | BPQ020 == 2), 0,
+      BPQ040A == 2, 0,
+      BPQ040A == 1, 1,
+      default = NA_real_
+    )]
+  } else {
+    cycle[, bpmeds := fcase(
+      BPQ040A == 9 | BPQ040A == 7, NA_real_,
+      is.na(BPQ040A) & (BPQ020 == 2), 0,
+      BPQ040A == 2, 0,
+      BPQ040A == 1, 1,
+      default = NA_real_
+    )]
+  }
+}
+
+# hypertension
+for (cycle in nhanes_list) {
+  cycle[, hypertension := fcase(
+    SBP >= 130 | DBP >= 80 | bpmeds == 1, 1, 
+    SBP < 130 | DBP < 80 | bpmeds == 0, 0,
+    default = NA_real_
+  )]
+}
+
+# diabetes
+for (cycle in nhanes_list) {
+  if ("DID040Q" %in% names(cycle)) {
+    # convert large values to NA
+    cycle[, DID040Q := ifelse(
+      DID040Q == 99999 | DID040Q == 77777, NA_real_, DID040Q
+    )]
+    # get age diagnosed with diabetes
+    cycle[, age_diabts := DID040Q]
+    # calculate diabetes duration
+    cycle[, diabetes_duration := RIDAGEYR - age_diabts]
+    cycle[, diabetes_duration_cat := cut(
+      diabetes_duration,
+      breaks = c(-Inf, 4.99, 14.99, Inf),
+      labels = c("0 to <5 years", "5 to <15 years", ">=15 years"),
+      right = FALSE
+    )]
+  } else if ("DID040" %in% names(cycle)) {
+    # if the variable is DID040
+    # convert large values to NA
+    cycle[, DID040 := ifelse(
+      DID040 == 999 | DID040 == 777 | DID040 == 666, NA_real_, DID040
+    )]
+    # get age diagnosed with diabetes
+    cycle[, age_diabts := DID040]
+    # calculate diabetes duration
+    cycle[, diabetes_duration := RIDAGEYR - age_diabts]
+    cycle[, diabetes_duration_cat := cut(
+      diabetes_duration,
+      breaks = c(-Inf, 4.99, 14.99, Inf),
+      labels = c("0 to <5 years", "5 to <15 years", ">=15 years"),
+      right = FALSE
+    )]
+  }
+}
+
+# for (cycle in nhanes_list) {
+#   if ("DID040" %in% names(cycle)) {
+#     # if the variable is DID040
+#     # convert large values to NA
+#     cycle[, DID040 := ifelse(
+#       DID040 == 999 | DID040 == 777 | DID040 == 666, NA_real_, DID040
+#     )]
+#     # get age diagnosed with diabetes
+#     cycle[, age_diabts := DID040]
+#     # calculate diabetes duration
+#     cycle[, diabetes_duration := RIDAGEYR - age_diabts]
+#     cycle[, diabetes_duration_cat := cut(
+#       diabetes_duration,
+#       breaks = c(-Inf, 4.99, 14.99, Inf),
+#       labels = c("0 to <5 years", "5 to <15 years", ">=15 years"),
+#       right = FALSE
+#     )]
+#   }
+# }
+
+#   else if ("DID040" %in% names(cycle)) {
+#     # if the variable is DID040
+#     # convert large values to NA
+#     cycle[, DID040 := fcase(
+#       DID040 == 999 | DID040 == 777 | DID040 == 666, NA_real_,
+#       default = DID040
+#     )]
+#     # get age diagnosed with diabetes
+#     cycle[, age_diabts := DID040]
+#     # calculate diabetes duration
+#     cycle[, diabetes_duration := RIDAGEYR - age_diabts]
+#     print(paste(cycle, "processed with DID040"))
+#   }
+# }
+
