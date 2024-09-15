@@ -34,6 +34,7 @@ calculate_svy_prop <- function(design, x) {
     Upper_CI <- confint(weighted_props)[2] * 100
 
     unweighted_counts <- table(design$variables[[x]])[2]
+    weighted_counts <- svytotal(form, design, na.rm = TRUE)
 
     # get the standard error
     se <- SE(weighted_props) * 100
@@ -41,6 +42,7 @@ calculate_svy_prop <- function(design, x) {
     # Combine into one data frame
     full_table <- data.frame(
         "Unweighted_Count" = unweighted_counts,
+        "Weighted_Count" = weighted_counts,
         "Proportion" = as.numeric(weighted_props),
         "Lower_CI" = Lower_CI,
         "Upper_CI" = Upper_CI,
@@ -98,8 +100,6 @@ for (i in 1:length(weighted_nhanes_list)) {
     )
 }
 
-# the hypertionsion and diabetes duration variables
-# need to be derived for the nhanes_list for this to work
 
 # subset the dataframes to only include rows with non-missing select variables
 for (i in 1:length(weighted_nhanes_list)) {
@@ -139,7 +139,7 @@ colnames(proportion_srh) <- c(
 )
 # save as excel file
 write.xlsx(
-    proportion_srh, "./out/srh_distribution1.xlsx",
+    proportion_srh, "./out/srh_distribution.xlsx",
     rowNames = TRUE
 )
 write.csv(proportion_srh, file = "./out/srh_distribution.csv")

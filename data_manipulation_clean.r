@@ -52,6 +52,8 @@ nhanes_analytic_small <- nhanes_analytic[, c(
 
 # missing proportions
 plot_missing(nhanes_analytic_small)
+# save the plot
+ggsave("./out/missing_plot_before.png")
 missing_data <- profile_missing(nhanes_analytic_small)
 write.csv(missing_data, file = "./out/missing_data_before.csv")
 
@@ -107,6 +109,8 @@ table(nhanes_analytic_small$low_srh, useNA = "ifany")
 
 # check missing proportions now
 plot_missing(nhanes_analytic_small)
+# save the plot
+ggsave("./out/missing_plot_after.png")
 missing_data <- profile_missing(nhanes_analytic_small)
 write.csv(missing_data, file = "./out/missing_data_after.csv")
 

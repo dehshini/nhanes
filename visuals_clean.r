@@ -1,5 +1,5 @@
 # create directory for figures/tables
-# dir.create("figures", showWarnings = FALSE)
+dir.create("figures", showWarnings = FALSE)
 
 table1_labels <- list(
     RIDAGEYR ~ "Age (years), mean",
@@ -46,33 +46,42 @@ table1low <- tbl_svysummary(
     missing_text = "Missing",
     missing_stat = "{p_miss}",
     label = table1_labels
+) %>% 
+add_overall(
+    col_label = "Overall\nMean or % (SE)"
+) %>%
+modify_header(
+    stat_1 = "**High**",
+    stat_2 = "**Low**"
+) %>%
+add_p(
+    test = list(
+        all_continuous() ~ "svy.t.test",
+        all_categorical() ~ "svy.chisq.test"
+    )
 )
 
-table1low <- table1low %>% 
-    add_overall(
-        col_label = "Overall \nMean or % (SE)"
-    ) %>%
-    modify_header(
-        stat_1 = "**High, N = {n} **",
-        stat_2 = "**Low, N = {n} **"
-    )
-    modify_spanning_header(
-        c("stat_1", "stat_2") ~ "**Self-Reported Health Status**"
-    ) %>%
-    add_p(
-        test = list(
-            all_continuous() ~ "svy.t.test",
-            all_categorical() ~ "svy.chisq.test"
-        )
-    )
-
 table1low %>%
-    as_gt() %>% 
+    as_gt() %>%
+    tab_source_note(source_note = "Data Source:  NHANES 2001-2018") %>%
+    tab_stubhead(label = "Self-Reported Health Status") %>%
+    tab_spanner(
+        label = "Self-Reported Health Status",
+        columns = c(stat_1, stat_2)
+    ) %>%
+    tab_options(
+        table.font.size = px(10),
+        table.font.color = "black",
+        table.border.bottom.style = "none",
+        table.border.bottom.color = "black",
+        table.border.top.color = "black",
+        column_labels.border.bottom.color = "black"
+    ) %>%
     tab_header(
         title = "Characteristics of US Adults with Diabetes,
                 Overall and by Self-Reported Health Status."
-    ) %>% 
-    gt::gtsave("./figures/table1low0905.docx")
+    ) %>%
+    gtsave("./figures/table1low0909.docx")
 
 
 # END TABLE
@@ -91,15 +100,15 @@ xlabels <- c("01-02", "03-04", "05-06",
 theme_general <- theme_minimal() +
     theme(axis.text.x = element_text(angle = 0, hjust = 0.5)) +
     theme(plot.title = element_text(hjust = 0.5)) +
-    theme(plot.title = element_text(size = 20)) +
+    theme(plot.title = element_text(size = 22)) +
     theme(plot.subtitle = element_text(hjust = 0.5)) +
     theme(plot.caption = element_text(hjust = 0.5)) +
-    theme(axis.title = element_text(size = 15)) +
-    theme(axis.text = element_text(size = 14)) +
+    theme(axis.title = element_text(size = 18)) +
+    theme(axis.text = element_text(size = 18)) +
     # add a legend
     # theme(legend.position = "top") +
-    theme(legend.title = element_text(size = 13)) +
-    theme(legend.text = element_text(size = 12)) +
+    theme(legend.title = element_text(size = 20)) +
+    theme(legend.text = element_text(size = 20)) +
     theme(legend.key.size = unit(1, "cm"))
 
 # END PLOT CUSTOMIZATION
@@ -123,7 +132,7 @@ colnames(plot_data)[1] <- "cycle"
 ggplot(plot_data, aes(x = cycle, y = Proportion)) +
     geom_line(
         aes(group = 1),
-        linewidth = 1.5,
+        linewidth = 1,
         color = "#000000"
     ) + # Line for trend
     geom_point(
@@ -147,8 +156,10 @@ ggplot(plot_data, aes(x = cycle, y = Proportion)) +
     theme_general +
     scale_x_discrete(label = xlabels) +
     ylim(0, 60) +
-    annotate("text", x = 8, y = 60, label = paste("P trend = 0.0919"), size = 6)
+    annotate("text", x = 8, y = 55, label = paste("P trend 0.0919"), size = 8)
 
+# save the plot
+#ggsave("./figures/trend_lowsrh.png", width = 10, height = 6)
 
 # END TREND GRAPH
 ######################################################
@@ -172,6 +183,9 @@ head(plot_lt65)
 # combine the data
 ageplot <- rbind(plot_gt65, plot_lt65)
 head(ageplot, 10)
+
+# age P values
+age_ptrend <- c("< 65 years, P trend 0.817", ">= 65 years, P trend 0.002")
 
 # create the plot
 ggplot(
@@ -198,7 +212,7 @@ ggplot(
         position = position_dodge(width = 0.3)
     ) +
     labs(
-        title = "Trend of Low SRH Among US Adults 
+        title = "Trend of Low SRH Among US Adults
             with Self-Reported Diabetes, by Age Group",
         x = "NHANES Cycle",
         y = "Proportion (%)",
@@ -213,7 +227,14 @@ ggplot(
         labels = c("0", "20", "40", "60", "80", "100"),
         limits = c(0, 70),
     ) +
-    scale_color_brewer(palette = "Dark2")
+    scale_color_brewer(palette = "Dark2") +
+    scale_color_discrete(labels = age_ptrend) +
+    scale_linetype_discrete(labels = age_ptrend) +
+    scale_shape_discrete(labels = age_ptrend) +
+    theme(legend.justification = c(0.5, 1), legend.position = c(0.8, 1))
+
+# save the plot
+ggsave("./figures/trend_lowsrh_age.png", width = 1536, height = 992, units = "px")
 
 
 # END TREND BY AGE GRAPH
@@ -232,10 +253,11 @@ plot_female <- fread("./out/lowsrh_female.csv")
 colnames(plot_male)[1] <- "cycle"
 colnames(plot_female)[1] <- "cycle"
 
-
 # combine the data
 sexplot <- rbind(plot_male, plot_female)
 head(sexplot, 10)
+
+ptrend_sex <- c("Female, P trend 0.157", "Male, P trend 0.518")
 
 # create the plot
 ggplot(
@@ -262,7 +284,8 @@ ggplot(
         position = position_dodge(width = 0.3)
     ) +
     labs(
-        title = "Trend of Low SRH Among US Adults with Self-Reported Diabetes",
+        title = "Trend of Low SRH Among US Adults 
+        with Self-Reported Diabetes, by Sex",
         x = "NHANES Cycle",
         y = "Proportion (%)",
         color = "Sex",
@@ -276,7 +299,11 @@ ggplot(
         labels = c("0", "20", "40", "60", "80", "100"),
         limits = c(0, 70)
     ) +
-    scale_color_brewer(palette = "Set1")
+    scale_color_brewer(palette = "Set1") +
+    scale_color_discrete(labels = ptrend_sex) +
+    scale_linetype_discrete(labels = ptrend_sex) +
+    scale_shape_discrete(labels = ptrend_sex) +
+    theme(legend.justification = c(0.5, 1), legend.position = c(0.8, 1))
 
 
 # END TREND BY SEX GRAPH
@@ -303,6 +330,11 @@ colnames(plot_hispanic)[1] <- "cycle"
 raceplot <- rbind(plot_white, plot_black, plot_hispanic)
 head(raceplot, 10)
 
+race_ptrend <- c(
+    "Non-Hispanic White, P trend 0.059",
+    "Non-Hispanic Black, P trend 0.128", 
+    "Hispanic, P trend 0.256"
+)
 
 # create the plot
 ggplot(
@@ -329,7 +361,8 @@ ggplot(
         position = position_dodge(width = 0.3)
     ) +
     labs(
-        title = "Trend of Low SRH Among US Adults with Self-Reported Diabetes",
+        title = "Trend of Low SRH Among US Adults 
+        with Self-Reported Diabetes, by Race/Ethnicity",
         x = "NHANES Cycle",
         y = "Proportion (%)",
         color = "Ethnicity",
@@ -341,10 +374,13 @@ ggplot(
     scale_y_continuous(
         breaks = c(0, 20, 40, 60, 80, 100),
         labels = c("0", "20", "40", "60", "80", "100"),
-        limits = c(0, 70)
+        limits = c(0, 100)
     ) +
-    scale_color_brewer(palette = "Set1")
-
+    scale_color_brewer(palette = "Set1", breaks = c("White", "Black", "Hispanic")) +
+    scale_color_discrete(labels = race_ptrend, breaks = c("White", "Black", "Hispanic")) +
+    scale_linetype_discrete(labels = race_ptrend, breaks = c("White", "Black", "Hispanic")) +
+    scale_shape_discrete(labels = race_ptrend, breaks = c("White", "Black", "Hispanic"))+  
+    theme(legend.justification = c(0.5, 1), legend.position = c(0.8, 1))
 
 # END TREND BY RACE AND ETHNICITY
 ######################################
@@ -369,6 +405,10 @@ colnames(plot_nonpoverty)[1] <- "cycle"
 povertyplot <- rbind(plot_poverty, plot_nonpoverty)
 head(povertyplot, 10)
 
+ptrend_income <- c(
+    "Above Poverty threshold, P trend 0.057", 
+    "Below Poverty threshold, P trend 0.413"
+)
 
 # create the plot
 ggplot(
@@ -395,7 +435,8 @@ ggplot(
         position = position_dodge(width = 0.3)
     ) +
     labs(
-        title = "Trend of Low SRH Among US Adults with Self-Reported Diabetes",
+        title = "Trend of Low SRH Among US Adults 
+        with Self-Reported Diabetes, by Family Income",
         x = "NHANES Cycle",
         y = "Proportion (%)",
         color = "Family Income",
@@ -407,9 +448,13 @@ ggplot(
     scale_y_continuous(
         breaks = c(0, 20, 40, 60, 80, 100),
         labels = c("0", "20", "40", "60", "80", "100"),
-        limits = c(0, 100)
+        limits = c(0, 90)
     ) +
-    scale_color_brewer(palette = "Set1")
+    scale_color_brewer(palette = "Set1") +
+    scale_color_discrete(labels = ptrend_income) +
+    scale_linetype_discrete(labels = ptrend_income) +
+    scale_shape_discrete(labels = ptrend_income) +
+    theme(legend.justification = c(0.6, 1), legend.position = c(0.8, 1))
 
 
 # END TREND BY FAMILY INCOME/POVERTY
@@ -437,6 +482,11 @@ insuranceplot <- rbind(plot_insurance, plot_insurance1)
 head(insuranceplot, 10)
 
 
+ptrend_insurance <- c(
+    "Insured (Private/Public), P trend 0.055", 
+    "Uninsured, P trend 0.281"
+)
+
 # create the plot
 ggplot(
     data = insuranceplot,
@@ -461,8 +511,16 @@ ggplot(
         width = 0.3,
         position = position_dodge(width = 0.3)
     ) +
+    # geom_smooth(
+    #     method = "glm",
+    #     se = FALSE,
+    #     aes(group = Insurance, alpha = 0.2),
+    #     linewidth = 0.7,
+    #     show.legend = FALSE   # Set line thickness of regression lines
+    # ) +
     labs(
-        title = "Trend of Low SRH Among US Adults with Self-Reported Diabetes",
+        title = "Trend of Low SRH Among US Adults 
+        with Self-Reported Diabetes, by Insurance Status",
         x = "NHANES Cycle",
         y = "Proportion (%)",
         color = "Insurance",
@@ -476,7 +534,11 @@ ggplot(
         labels = c("0", "20", "40", "60", "80", "100"),
         limits = c(0, 100)
     ) +
-    scale_color_brewer(palette = "Set1")
+    scale_color_brewer(palette = "Set1") +
+    scale_color_discrete(labels = ptrend_insurance) +
+    scale_linetype_discrete(labels = ptrend_insurance) +
+    scale_shape_discrete(labels = ptrend_insurance) +
+    theme(legend.justification = c(0.6, 1), legend.position = c(0.8, 1))
 
 
 # END TREND BY INSURANCE
@@ -486,3 +548,160 @@ ggplot(
 #######################################################
 # TREND GRAPH BY EDUCATION
 ######################################################
+
+
+# load the data
+plot_education <- fread("./out/lowsrh_abovehighschool.csv")
+plot_education1 <- fread("./out/lowsrh_belowhighschool.csv")
+plot_education2 <- fread("./out/lowsrh_highschool.csv")
+
+# rename the first column
+colnames(plot_education)[1] <- "cycle"
+colnames(plot_education1)[1] <- "cycle"
+colnames(plot_education2)[1] <- "cycle"
+
+# combine the data
+educationplot <- rbind(plot_education, plot_education1, plot_education2)
+head(educationplot, 10)
+
+ptrend_education <- c(
+    "Above High School, P trend 0.677", 
+    "High School/equivalent, P trend 0.769", 
+    "Less than High School, P trend 0.687"
+)
+
+# create the plot
+ggplot(
+    data = educationplot,
+    aes(x = cycle, y = Proportion, color = Education)
+) +
+    geom_line(
+        aes(group = Education, linetype = Education),
+        linewidth = 1
+    ) +
+    geom_point(
+        aes(color = Education, shape = Education),
+        size = 3.5,
+        position = position_dodge(width = 0.2),
+    ) +
+    geom_errorbar(
+        aes(
+            ymin = Lower_CI,
+            ymax = Upper_CI,
+            color = Education,
+            linetype = Education
+        ),
+        width = 0.3,
+        position = position_dodge(width = 0.3)
+    ) +
+    # geom_smooth(
+    #     method = "glm",
+    #     se = FALSE,
+    #     aes(group = Education, alpha = 0.5),
+    #     linewidth = 0.7,
+    #     show.legend = FALSE
+    # ) +
+    labs(
+        title = "Trend of Low SRH Among US Adults 
+        with Self-Reported Diabetes, by Education",
+        x = "NHANES Cycle",
+        y = "Proportion (%)",
+        color = "Education",
+        linetype = "Education",
+        shape = "Education"
+    ) +
+    theme_general +
+    scale_x_discrete(label = xlabels) +
+    scale_y_continuous(
+        breaks = c(0, 20, 40, 60, 80, 100),
+        labels = c("0", "20", "40", "60", "80", "100"),
+        limits = c(0, 100)
+    ) +
+    scale_color_brewer(palette = "Set1") +
+    scale_color_discrete(labels = ptrend_education) +
+    scale_linetype_discrete(labels = ptrend_education) +
+    scale_shape_discrete(labels = ptrend_education) +
+    theme(legend.justification = c(0.6, 1), legend.position = c(0.8, 1))
+
+
+# END TREND BY EDUCATION
+######################################
+
+
+#######################################################
+# TREND GRAPH BY HBA1C
+######################################################
+
+
+# load the data
+plot_hba1c <- fread("./out/lowsrh_lt7.csv")
+plot_hba1c1 <- fread("./out/lowsrh_7to9.csv")
+plot_hba1c2 <- fread("./out/lowsrh_gt9.csv")
+
+# rename the first column
+colnames(plot_hba1c)[1] <- "cycle"
+colnames(plot_hba1c1)[1] <- "cycle"
+colnames(plot_hba1c2)[1] <- "cycle"
+
+# combine the data
+hba1cplot <- rbind(plot_hba1c, plot_hba1c1, plot_hba1c2)
+head(hba1cplot, 10)
+
+ptrend_hba1c <- c(
+    "HBA1C < 7, P trend 0.031",
+    "HBA1C 7-9, P trend 0.291",
+    "HBA1C > 9, P trend 0.186"
+)
+
+# create the plot
+ggplot(
+    data = hba1cplot,
+    aes(x = cycle, y = Proportion, color = HBA1C)
+) +
+    geom_line(
+        aes(group = HBA1C, linetype = HBA1C),
+        linewidth = 1
+    ) +
+    geom_point(
+        aes(color = HBA1C, shape = HBA1C),
+        size = 3.5,
+        position = position_dodge(width = 0.2),
+    ) +
+    geom_errorbar(
+        aes(
+            ymin = Lower_CI,
+            ymax = Upper_CI,
+            color = HBA1C,
+            linetype = HBA1C
+        ),
+        width = 0.3,
+        position = position_dodge(width = 0.3)
+    ) +
+    # geom_smooth(
+    #     method = "glm",
+    #     se = FALSE,
+    #     aes(group = HBA1C, alpha = 0.5),
+    #     linewidth = 0.7,
+    #     show.legend = FALSE
+    # ) +
+    labs(
+        title = "Trend of Low SRH Among US Adults 
+        with Self-Reported Diabetes, by HBA1C",
+        x = "NHANES Cycle",
+        y = "Proportion (%)",
+        color = "HBA1C",
+        linetype = "HBA1C",
+        shape = "HBA1C"
+    ) +
+    theme_general +
+    scale_x_discrete(label = xlabels) +
+    scale_y_continuous(
+        breaks = c(0, 20, 40, 60, 80, 100),
+        labels = c("0", "20", "40", "60", "80", "100"),
+        limits = c(0, 85)
+    ) +
+    scale_color_brewer(palette = "Set1", breaks = c("<7", "7-9", ">9")) +
+    scale_color_discrete(labels = ptrend_hba1c, breaks = c("<7", "7-9", ">9")) +
+    scale_linetype_discrete(labels = ptrend_hba1c, breaks = c("<7", "7-9", ">9")) +
+    scale_shape_discrete(labels = ptrend_hba1c, breaks = c("<7", "7-9", ">9")) +
+    theme(legend.justification = c(0.5, 1), legend.position = c(0.8, 1))

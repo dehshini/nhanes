@@ -1,6 +1,6 @@
 # load all data
 setwd("/Users/dehshini/code/R/nhanes")
-# load("nhanes_data.RDATA")
+# load("~/Desktop/nhanes.RDATA")
 
 library(tidyverse)
 library(haven)
@@ -118,6 +118,7 @@ nhanes_all[, MARITAL := ifelse(DMDMARTL %in% c(1, 6), 1,
 )]
 
 # education level
+# 1 = less than HS, 2 = HS, 3 = some college/college graduate
 nhanes_all[, EDULEVEL := ifelse(DMDEDUC2 %in% c(1, 2), 1,
   ifelse(DMDEDUC2 == 3, 2,
     ifelse(DMDEDUC2 %in% c(4, 5), 3, NA)
