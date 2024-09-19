@@ -1,19 +1,42 @@
+# Definitions
+* low SRH defined as poor/fair self-reported health
+* high SRH as excellent/very good/good.
+* diabetes is defined as self-reported diabetes (told by a doctor/health worker)
+* sex is self-reported sex at birth
+* race is self-reported
+* eGFR calculated using CKD-EPI equation (package: transplantr)
+* albumin-creatinine ratio calculated by urine albumin, ug/ml divided by urine creatinine, mg/dl and multiplied by 100
+* CKD is defined as eGFR < 60ml/min/1.73m2 or albumin-creatinine ratio >= 30 mg/g
+* current smoker is self-reported current smoking or serum cotinine > 10
+* diabetes duration calculated as current age - age diagnosed with diabetes
+* SBP/DBP calculated as the average of available SBP/DBP measurements
+* hypertension is self-reported hypertension or self-reported use of antihypertensive medications
+* hypercholesterolemia defined as self-reported hypercholesterolemia or self-reported use of cholesterol-lowering medications or total cholesterol > 240 mg/dl
+
+
 # Workflow
-* begin with "load all data script". this load the nhanes data from the directory by cycle. merges them . converts the data to data tables.
+* 1. begin with "load_all_data script". 
+this load the nhanes data from the directory by cycle. merges them . converts the data to data tables. derived variables are created, eg. CKD, insurance status, CVD, albumin/creatinine ratio, etc
+This is done for the combined cycles as well as the individual cycles.
 
-* go to the "data manipulation" script. 
+* 2. go to the "data_manipulation" script. 
+this creates an analytic dataset by taking only the diabetic population and excluding people with NA values for the outcome variable (self-reported health). also exclude poeple with NAs for variables with less than 2% missingness. 
+produces plots of the missing data proportions. 
 
-* create the weighted datasets 
+* 3. create the weighted datasets with "weighted_analysis" script.
+this creates survey design objects for the combine cycles dataset and the individual cycle datasets. 
+calculates the weighted proportion of low srh and high srh overall and stratified by various variables. 
+(age, sex, race) and (HBA1C, insurance status, family income, education). saves each analysis in a csv file.
 
-* 
+* 4. "analysis_4y_cycles" creates combined 4 year cycles and calculates the MEC 4yr weights. The weighted proportions of low SRH and high SRH are then calculated and saved in csv files. The last cycle (2017-2018) is not combined to create a 4 year cycle. 
 
-# SRH as binary with poor/fair yes/no
+* 5. "regression" 
 
-## analysis by race/ethnicity
-## distribution of each status as a stacked bar graph
-# analysis by insurance(private, public, uninsured), CKD(), poverty(above and below poverty line)
+* 6. "visuals_clean" creates the trend graphs for overall and by stratifying variables. This is done for the 2 year cycles and for the 4 year cycles.
 
+note: the "clean" versions of these scripts can be sourced in order. 
 
+* 7. need to create high srh proportions. 
 
 
 ## Variables  
@@ -21,8 +44,6 @@
 
 ### DEMOGRAPHY  
 SEQN = UNIQUE ID  
-SDMVSTRA = STRATUM  
-SDMVPSU = PSU  
 RIAGENDR = GENDER  
 RIDAGEYR = AGE IN YEARS  
 RIDRETH1 = RACE  
@@ -37,6 +58,7 @@ INDFMPIR - Ratio of family income to poverty
 WTSAFPRP - Fasting Subsample Weight  
 LBDTCSI = TOTAL CHOLESTEROL MMOL/L  
 LBXSCH = SAME IN MG/DL  
+LBXTC = SAME
 LBDHDD = HDL CHOLEST MG/DL  
 LBDHDDSI = HDL CHOLEST MMOL/L   
 LBXTR - Triglyceride (mg/dL)  

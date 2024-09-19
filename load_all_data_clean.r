@@ -2,17 +2,11 @@
 setwd("/Users/dehshini/code/R/nhanes")
 # load("~/Desktop/nhanes.RDATA")
 
-library(tidyverse)
-library(haven)
-library(data.table)
-library(survey)
-library(gtsummary)
-library(transplantr)
-library(openxlsx)
-library(gt)
-library(tableone)
-library(DataExplorer)
-library(Publish)
+pacman::p_load(
+  tidyverse, haven, data.table, survey, 
+  gtsummary, transplantr, openxlsx, gt, 
+  tableone, DataExplorer, Publish, broom
+)
 
 # Function to load data files from a directory
 load_data_files <- function(directory) {
