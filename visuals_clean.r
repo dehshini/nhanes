@@ -415,7 +415,7 @@ colnames(plot_hispanic)[1] <- "cycle"
 raceplot <- rbind(plot_white, plot_black, plot_hispanic)
 head(raceplot, 10)
 
-race_ptrend <- c(
+ptrend_race <- c(
     "Non-Hispanic White, P trend 0.059",
     "Non-Hispanic Black, P trend 0.128", 
     "Hispanic, P trend 0.256"
@@ -462,9 +462,9 @@ ggplot(
         limits = c(0, 100)
     ) +
     scale_color_brewer(palette = "Set1", breaks = c("White", "Black", "Hispanic")) +
-    scale_color_discrete(labels = race_ptrend, breaks = c("White", "Black", "Hispanic")) +
-    scale_linetype_discrete(labels = race_ptrend, breaks = c("White", "Black", "Hispanic")) +
-    scale_shape_discrete(labels = race_ptrend, breaks = c("White", "Black", "Hispanic"))+  
+    scale_color_discrete(labels = ptrend_race, breaks = c("White", "Black", "Hispanic")) +
+    scale_linetype_discrete(labels = ptrend_race, breaks = c("White", "Black", "Hispanic")) +
+    scale_shape_discrete(labels = ptrend_race, breaks = c("White", "Black", "Hispanic"))+  
     theme(legend.justification = c(0.5, 1), legend.position = c(0.8, 1))
 
 # END TREND BY RACE AND ETHNICITY
@@ -1035,7 +1035,7 @@ head(raceplot.2, 10)
 
 
 # race P values
-race_ptrend.2 <- c("NH Black, P trend 0.120", "Hispanic, P trend 0.260", "NH White, P trend 0.058")
+ptrend_race.2 <- c("NH Black, P trend 0.120", "Hispanic, P trend 0.260", "NH White, P trend 0.058")
 
 # create the plot
 ggplot(
@@ -1076,9 +1076,9 @@ ggplot(
         limits = c(0, 80)
     ) +
     scale_color_brewer(palette = "Dark2") +
-    scale_color_discrete(labels = race_ptrend.2) +
-    scale_linetype_discrete(labels = race_ptrend.2) +
-    scale_shape_discrete(labels = race_ptrend.2) +
+    scale_color_discrete(labels = ptrend_race.2) +
+    scale_linetype_discrete(labels = ptrend_race.2) +
+    scale_shape_discrete(labels = ptrend_race.2) +
     theme(
         legend.position = c(0.8, 0.9) # Position inside the plot area
     )

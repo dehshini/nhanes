@@ -471,78 +471,88 @@ analyze_csv <- function(file_path) {
     return(results)
 }
 
-# Function to analyze proportions using survey design
-analyze_csv2 <- function(df, weight, cycle, proportion) {
-    # Ensure the variables are in the correct format
-    df[[weight_var]] <- as.numeric(df[[weight_var]])
-    df[[cycle]] <- as.factor(df[[cycle_var]])
-    df[[proportion_var]] <- as.numeric(df[[proportion_var]])
 
-    # Define the survey design
-    svy_design <- svydesign(
-        id = ~1, # assuming no clusters, use the appropriate clustering variable if you have one
-        weights = df[[weight_var]],
-        data = df
+# Load required package
+library(tidyverse)
+
+# Function to test two weighted proportions from a CSV file
+test_weighted_proportions <- function(file_path, row1, row2) {
+    # Read the CSV file
+    df <- read.csv(file_path)
+
+    # Check if the row numbers are valid
+    if (row1 > nrow(df) || row2 > nrow(df)) {
+        stop("Row numbers exceed the number of rows in the data.")
+    }
+
+    # Extract the first and second row for comparison
+    first_row <- df[row1, ]
+    second_row <- df[row2, ]
+
+    # Extract proportions and weighted sample sizes
+    x <- c(first_row$Proportion/100, second_row$Proportion/100)
+    n <- c(first_row$Unweighted_Count, second_row$Unweighted_Count)
+
+    # Check that proportions are less than their respective sample sizes
+    if (any(x > n)) {
+        stop("Proportions must be less than or equal to sample sizes.")
+    }
+
+    # Perform the Chi-square test using actual sample sizes
+    prop_test <- prop.test(x = round(x * n), n = n, correct = FALSE)
+
+    # Prepare results as a data frame
+    results <- data.frame(
+        Row_Comparison = paste(first_row[1], "vs", second_row[1]),
+        First_Proportion = first_row$Proportion,
+        #First_Weighted_Count = first_row$Weighted_Count,
+        Second_Proportion = second_row$Proportion,
+        #Second_Weighted_Count = second_row$Weighted_Count,
+        #Chi_Square_Stat = prop_test$statistic,
+        P_Value = prop_test$p.value
     )
 
-    # Subset the design for the first and last cycle
-    first_cycle <- levels(df[[cycle_var]])[1]
-    last_cycle <- levels(df[[cycle_var]])[length(levels(df[[cycle_var]]))]
-
-    # Create subsets for the first and last cycles
-    svy_first <- subset(svy_design, df[[cycle_var]] == first_cycle)
-    svy_last <- subset(svy_design, df[[cycle_var]] == last_cycle)
-
-    # Estimate the proportion for the first cycle
-    prop_first <- svymean(~ I(df[[proportion_var]]), svy_first)
-
-    # Estimate the proportion for the last cycle
-    prop_last <- svymean(~ I(df[[proportion_var]]), svy_last)
-
-    # Combine the two cycles into one design for comparison
-    combined_design <- svydesign(
-        id = ~1,
-        weights = df[[weight_var]],
-        strata = df[[cycle_var]], # stratify by cycle
-        data = df
-    )
-
-    # Perform a Wald test to compare the two proportions
-    wald_test <- svychisq(~ df[[cycle_var]] + I(df[[proportion_var]]), combined_design)
-
-    # Output results
-    list(
-        first_cycle_prop = prop_first,
-        last_cycle_prop = prop_last,
-        test = wald_test
-    )
+    return(results)
 }
 
+# sex
+test_weighted_proportions("./out/lowsrh_female.csv", 1, 9)
+test_weighted_proportions("./out/lowsrh_male.csv", 1, 9)
+
+# age
+test_weighted_proportions("./out/lowsrh_gt65.csv", 1, 9)
+test_weighted_proportions("./out/lowsrh_lt65.csv", 1, 9)
+
+# race
+test_weighted_proportions("./out/lowsrh_white.csv", 1, 9)
+test_weighted_proportions("./out/lowsrh_black.csv", 1, 9)
+test_weighted_proportions("./out/lowsrh_hispanic.csv", 1, 9) 
 
 
-
+## 4 year cycles
 
 # sex
-print(analyze_csv2("./out/lowsrh_female.csv"))
-print(analyze_csv2("./out/lowsrh_male.csv"))
+test_weighted_proportions("./out/lowsrh_female_2.csv", 1, 5)
+test_weighted_proportions("./out/lowsrh_male_2.csv", 1, 5)
+
 # age
-print(analyze_csv("./out/lowsrh_gt65.csv"))
-print(analyze_csv("./out/lowsrh_lt65.csv"))
+test_weighted_proportions("./out/lowsrh_gt65_2.csv", 1, 5)
+test_weighted_proportions("./out/lowsrh_lt65_2.csv", 1, 5)
+
 # race
-print(analyze_csv("./out/lowsrh_white.csv"))
-print(analyze_csv("./out/lowsrh_black.csv"))
-print(analyze_csv("./out/lowsrh_hispanic.csv"))
+test_weighted_proportions("./out/lowsrh_white_2.csv", 1, 5)
+test_weighted_proportions("./out/lowsrh_black_2.csv", 1, 5)
+test_weighted_proportions("./out/lowsrh_hispanic_2.csv", 1, 5)
+
+# income
+test_weighted_proportions("./out/lowsrh_poverty_2.csv", 1, 5)
+test_weighted_proportions("./out/lowsrh_no_poverty_2.csv", 1, 5)
+
 # insurance
-print(analyze_csv("./out/lowsrh_insured.csv"))
-print(analyze_csv("./out/lowsrh_noninsured.csv"))
+test_weighted_proportions("./out/lowsrh_insured_2.csv", 1, 5)
+test_weighted_proportions("./out/lowsrh_uninsured_2.csv", 1, 5)
+
 # education
-print(analyze_csv("./out/lowsrh_belowhighschool.csv"))
-print(analyze_csv("./out/lowsrh_highschool.csv"))
-print(analyze_csv("./out/lowsrh_abovehighschool.csv"))
-# CKD
-# print(analyze_csv("./out/lowsrh_ckd.csv"))
-# print(analyze_csv("./out/lowsrh_nonckd.csv"))
-# hba1c
-print(analyze_csv("./out/lowsrh_lt7.csv"))
-print(analyze_csv("./out/lowsrh_7to9.csv"))
-print(analyze_csv("./out/lowsrh_gt9.csv"))
+test_weighted_proportions("./out/lowsrh_highschool_2.csv", 1, 5)
+test_weighted_proportions("./out/lowsrh_college_2.csv", 1, 5)
+test_weighted_proportions("./out/lowsrh_belowhighschool_2.csv", 1, 5)

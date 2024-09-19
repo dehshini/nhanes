@@ -240,18 +240,7 @@ write.csv(prop_lowsrh_no_poverty.2, file = "./out/lowsrh_no_poverty_2.csv")
 # by INSURANCE STATUS, non-insured and insured
 #######################
 
-lowsrh_insured.2 <- lapply(weighted_4y_list, subset, insurance == 0)
-# calculate the proportion of low_srh
-prop_lowsrh_insured.2 <- do.call(
-    rbind, lapply(lowsrh_insured.2, calculate_svy_prop, "low_srh")
-)
-# add a column for insurance
-prop_lowsrh_insured.2$Insurance <- "Insured"
-write.csv(prop_lowsrh_insured.2, file = "./out/lowsrh_insured_2.csv")
-
-lowsrh_uninsured.2 <- lapply(
-    weighted_4y_list, subset, insurance == 1 | insurance == 2
-)
+lowsrh_uninsured.2 <- lapply(weighted_4y_list, subset, insurance == 0)
 # calculate the proportion of low_srh
 prop_lowsrh_uninsured.2 <- do.call(
     rbind, lapply(lowsrh_uninsured.2, calculate_svy_prop, "low_srh")
@@ -259,6 +248,17 @@ prop_lowsrh_uninsured.2 <- do.call(
 # add a column for insurance
 prop_lowsrh_uninsured.2$Insurance <- "Uninsured"
 write.csv(prop_lowsrh_uninsured.2, file = "./out/lowsrh_uninsured_2.csv")
+
+lowsrh_insured.2 <- lapply(
+    weighted_4y_list, subset, insurance == 1 | insurance == 2
+)
+# calculate the proportion of low_srh
+prop_lowsrh_insured.2 <- do.call(
+    rbind, lapply(lowsrh_insured.2, calculate_svy_prop, "low_srh")
+)
+# add a column for insurance
+prop_lowsrh_insured.2$Insurance <- "Insured"
+write.csv(prop_lowsrh_insured.2, file = "./out/lowsrh_insured_2.csv")
 
 
 ########################
