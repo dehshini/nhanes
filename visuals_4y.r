@@ -1,392 +1,62 @@
-#######################################################
-# TREND GRAPH
+############################################################
+# 4 YEAR PLOTS
+############################################################
 
-# load srh summary 2
-plot_data <- fread("./out/proportion_highsrh_weighted.csv")
-head(plot_data)
+
+xlabels.2 <- c(
+    "2001-2004",
+    "2005-2008",
+    "2009-2012",
+    "2013-2016",
+    "2017-2018"
+)
+
+# load srh summary data
+srh_summary.2 <- fread("./out/lowsrh_summary2.csv")
 
 # rename the first column
-colnames(plot_data)[1] <- "cycle"
+colnames(srh_summary.2)[1] <- "cycle"
 
 # create the plot
-ggplot(plot_data, aes(x = cycle, y = Proportion)) +
+ggplot(
+    data = srh_summary.2,
+    aes(x = cycle, y = Proportion)
+) +
     geom_line(
         aes(group = 1),
-        linewidth = 1,
-        color = "#000000"
-    ) + # Line for trend
+        linewidth = 1
+    ) +
     geom_point(
-        color = "#2d03ff",
         size = 3.5
-    ) + # Points for each cycle
+    ) +
     geom_errorbar(
         aes(
             ymin = Lower_CI,
             ymax = Upper_CI
         ),
-        width = 0.1,
-        color = "#999999",
-        alpha = 0.7
-    ) + # Error bars
+        width = 0.1
+    ) +
+    scale_x_discrete(
+        label = xlabels.2
+    ) +
+    scale_y_continuous(
+        limits = c(0, 60)
+    ) +
     labs(
-        title = "Trend of high SRH Among US Adults with Self-Reported Diabetes",
-        x = "NHANES Cycle",
-        y = "Proportion (%)"
+        x = "Cycle",
+        y = "Proportion (%)",
+        title = "Trend of Low SRH Among US Adults with Self-Reported Diabetes"
     ) +
     theme_general +
-    scale_x_discrete(label = xlabels) +
-    ylim(0, 80) +
     annotate(
         geom = "text",
-        x = 8, y = 55,
-        label = paste("P trend", round(p_trend[[2, 5]], 3)),
+        x = 5,
+        y = 60,
+        label = paste("P = ", round(p_trend.2[[2, 5]], 3)),
         size = 8
     )
 
-######################################################
-# TREND BY AGE GRAPH
 
-# load the data
-plot_gt65 <- fread("./out/highsrh_gt65.csv")
-plot_lt65 <- fread("./out/highsrh_lt65.csv")
-# rename the first column
-colnames(plot_gt65)[1] <- "cycle"
-colnames(plot_lt65)[1] <- "cycle"
-
-# combine the data
-ageplot <- rbind(plot_gt65, plot_lt65)
-
-# add the p values
-ptrend_age <- c(
-    "<65 P trend 0.817",
-    ">=65 P trend 0.002"
-)
-
-# create the plot
-ggplot(
-    ageplot,
-    aes(x = cycle, y = Proportion, color = Age)
-) +
-    geom_line(
-        aes(group = Age, linetype = Age),
-        linewidth = 1,
-        position = position_dodge(width = 0.2)
-    ) +
-    geom_point(
-        aes(color = Age, shape = Age),
-        size = 3.5,
-        position = position_dodge(width = 0.2),
-    ) +
-    geom_errorbar(
-        aes(
-            ymin = Lower_CI,
-            ymax = Upper_CI,
-            color = Age,
-            linetype = Age
-        ),
-        width = 0.3,
-        position = position_dodge(width = 0.2)
-    ) +
-    labs(
-        title = "Trend of High SRH Among US Adults
-        with Self-Reported Diabetes, by Age",
-        x = "NHANES Cycle",
-        y = "Proportion (%)",
-        color = "Age",
-        linetype = "Age",
-        shape = "Age"
-    ) +
-    theme_general +
-    scale_x_discrete(label = xlabels) +
-    scale_y_continuous(
-        breaks = seq(0, 90, 20),
-        limits = c(0, 90)
-    ) +
-    scale_color_brewer(palette = "Dark2") +
-    scale_color_discrete(labels = ptrend_age) +
-    scale_linetype_discrete(labels = ptrend_age) +
-    scale_shape_discrete(labels = ptrend_age) +
-    theme(legend.position = c(0.8, 0.2))
-
-
-# by sex
-plot_male <- fread("./out/highsrh_male.csv")
-plot_female <- fread("./out/highsrh_female.csv")
-
-# rename the first column
-colnames(plot_male)[1] <- "cycle"
-colnames(plot_female)[1] <- "cycle"
-
-# combine the data
-sexplot <- rbind(plot_male, plot_female)    
-
-ptrend_sex <- c("Female, P trend 0.157", "Male, P trend 0.518")
-
-# create the plot
-ggplot(
-    data = sexplot,
-    aes(x = cycle, y = Proportion, color = Sex)
-) +
-    geom_line(
-        aes(group = Sex, linetype = Sex),
-        linewidth = 1,
-        position = position_dodge(width = 0.2)
-    ) +
-    geom_point(
-        aes(color = Sex, shape = Sex),
-        size = 3.5,
-        position = position_dodge(width = 0.2),
-    ) +
-    geom_errorbar(
-        aes(
-            ymin = Lower_CI,
-            ymax = Upper_CI,
-            color = Sex,
-            linetype = Sex
-        ),
-        width = 0.3,
-        position = position_dodge(width = 0.2)
-    ) +
-    labs(
-        title = "Trend of High SRH Among US Adults
-        with Self-Reported Diabetes, by Sex",
-        x = "NHANES Cycle",
-        y = "Proportion (%)",
-        color = "Sex",
-        linetype = "Sex",
-        shape = "Sex"
-    ) +
-    theme_general +
-    scale_x_discrete(label = xlabels) +
-    scale_y_continuous(
-        breaks = seq(0, 100, 20),
-        limits = c(20, 100)
-    ) +
-    scale_color_brewer(palette = "Set1") +
-    scale_color_discrete(labels = ptrend_sex) +
-    scale_linetype_discrete(labels = ptrend_sex) +
-    scale_shape_discrete(labels = ptrend_sex) +
-    theme(legend.justification = c(0.5, 0.1), legend.position = c(0.8, 0.1))
-
-
-# by race
-
-# load the data
-plot_white <- fread("./out/highsrh_white.csv")
-plot_black <- fread("./out/highsrh_black.csv")
-plot_hispanic <- fread("./out/highsrh_hispanic.csv")
-
-# rename the first column
-colnames(plot_white)[1] <- "cycle"
-colnames(plot_black)[1] <- "cycle"
-colnames(plot_hispanic)[1] <- "cycle"
-
-# combine the data
-raceplot <- rbind(plot_white, plot_black, plot_hispanic)
-head(raceplot, 10)
-ptrend_race <- c(
-    "Non-Hispanic White, P trend 0.059",
-    "Non-Hispanic Black, P trend 0.128",
-    "Hispanic, P trend 0.256"
-)
-
-# create the plot
-ggplot(
-    data = raceplot,
-    aes(x = cycle, y = Proportion, color = Race)
-) +
-    geom_line(
-        aes(group = Race, linetype = Race),
-        linewidth = 1,
-        position = position_dodge(width = 0.2)
-    ) +
-    geom_point(
-        aes(color = Race, shape = Race),
-        size = 3.5,
-        position = position_dodge(width = 0.2),
-    ) +
-    geom_errorbar(
-        aes(
-            ymin = Lower_CI,
-            ymax = Upper_CI,
-            color = Race,
-            linetype = Race
-        ),
-        width = 0.3,
-        position = position_dodge(width = 0.2)
-    ) +
-    labs(
-        title = "Trend of High SRH Among US Adults
-        with Self-Reported Diabetes, by Race/Ethnicity",
-        x = "NHANES Cycle",
-        y = "Proportion (%)",
-        color = "Race",
-        linetype = "Race",
-        shape = "Race"
-    ) +
-    theme_general +
-    scale_x_discrete(label = xlabels) +
-    scale_y_continuous(
-        breaks = seq(0, 100, 20),
-        limits = c(0, 100)
-    ) +
-    # scale_color_brewer(palette = "Set1", breaks = c("NH White", "NH Black", "Hispanic")) +
-    # scale_color_discrete(labels = ptrend_race, breaks = c("NH White", "Hispanic", "NH Black")) +
-    # scale_linetype_discrete(labels = ptrend_race, breaks = c("NH White", "NH Black", "Hispanic")) +
-    # scale_shape_discrete(labels = ptrend_race, breaks = c("NH White", "NH Black", "Hispanic")) +
-    theme(legend.position = c(0.7, 0.2))
-
-
-# by family income
-# load the data
-plot_poverty <- fread("./out/highsrh_poverty.csv")
-plot_nonpoverty <- fread("./out/highsrh_nonpoverty.csv")
-
-
-# rename the first column
-colnames(plot_poverty)[1] <- "cycle"
-colnames(plot_nonpoverty)[1] <- "cycle"
-
-# combine the data
-povertyplot <- rbind(plot_poverty, plot_nonpoverty)
-head(povertyplot, 10)
-
-ptrend_income <- c(
-    "Above Poverty threshold, P trend 0.057",
-    "Below Poverty threshold, P trend 0.413"
-)
-
-# create the plot
-ggplot(
-    data = povertyplot,
-    aes(x = cycle, y = Proportion, color = Income)
-) +
-    geom_line(
-        aes(group = Income, linetype = Income),
-        linewidth = 1,
-        position = position_dodge(width = 0.2)
-    ) +
-    geom_point(
-        aes(color = Income, shape = Income),
-        size = 3.5,
-        position = position_dodge(width = 0.2),
-    ) +
-    geom_errorbar(
-        aes(
-            ymin = Lower_CI,
-            ymax = Upper_CI,
-            color = Income,
-            linetype = Income
-        ),
-        width = 0.3,
-        position = position_dodge(width = 0.2)
-    ) +
-    labs(
-        title = "Trend of High SRH Among US Adults
-        with Self-Reported Diabetes, by Family Income",
-        x = "NHANES Cycle",
-        y = "Proportion (%)",
-        color = "Family Income",
-        linetype = "Family Income",
-        shape = "Family Income"
-    ) +
-    theme_general +
-    scale_x_discrete(label = xlabels) +
-    scale_y_continuous(
-        breaks = c(0, 20, 40, 60, 80, 100),
-        labels = c("0", "20", "40", "60", "80", "100"),
-        limits = c(0, 90)
-    ) +
-    scale_color_brewer(palette = "Set1") +
-    scale_color_discrete(labels = ptrend_income) +
-    scale_linetype_discrete(labels = ptrend_income) +
-    scale_shape_discrete(labels = ptrend_income) +
-    theme(legend.justification = c(0.6, 1), legend.position = c(0.8, 0.2))
-
-
-
-# by insurance
-
-# load the data
-plot_insurance <- fread("./out/highsrh_noninsured.csv")
-plot_insurance1 <- fread("./out/highsrh_insured.csv")
-
-
-# rename the first column
-colnames(plot_insurance)[1] <- "cycle"
-colnames(plot_insurance1)[1] <- "cycle"
-
-
-# combine the data
-insuranceplot <- rbind(plot_insurance, plot_insurance1)
-head(insuranceplot, 10)
-
-
-ptrend_insurance <- c(
-    "Insured (Private/Public), P trend 0.055",
-    "Uninsured, P trend 0.281"
-)
-
-# create the plot
-ggplot(
-    data = insuranceplot,
-    aes(x = cycle, y = Proportion, color = Insurance)
-) +
-    geom_line(
-        aes(group = Insurance, linetype = Insurance),
-        linewidth = 1,
-        position = position_dodge(width = 0.2)
-    ) +
-    geom_point(
-        aes(color = Insurance, shape = Insurance),
-        size = 3.5,
-        position = position_dodge(width = 0.2),
-    ) +
-    geom_errorbar(
-        aes(
-            ymin = Lower_CI,
-            ymax = Upper_CI,
-            color = Insurance,
-            linetype = Insurance
-        ),
-        width = 0.3,
-        position = position_dodge(width = 0.2)
-    ) +
-    labs(
-        title = "Trend of High SRH Among US Adults
-        with Self-Reported Diabetes, by Insurance Status",
-        x = "NHANES Cycle",
-        y = "Proportion (%)",
-        color = "Insurance",
-        linetype = "Insurance",
-        shape = "Insurance"
-    ) +
-    theme_general +
-    scale_x_discrete(label = xlabels) +
-    scale_y_continuous(
-        breaks = c(0, 20, 40, 60, 80, 100),
-        labels = c("0", "20", "40", "60", "80", "100"),
-        limits = c(0, 100)
-    ) +
-    scale_color_brewer(palette = "Set1") +
-    scale_color_discrete(labels = ptrend_insurance) +
-    scale_linetype_discrete(labels = ptrend_insurance) +
-    scale_shape_discrete(labels = ptrend_insurance) +
-    theme(legend.position = c(0.7, 0.15))
-
-
-
-
-
-
-
-
-
-
-
-############################################################
-# 4 YEAR PLOTS
-############################################################
 
 # by age group
 
@@ -405,7 +75,7 @@ ageplot.2 <- rbind(plot_gt65.2, plot_lt65.2)
 age_ptrend.2 <- c("< 65 years, P trend 0.821", ">= 65 years, P trend 0.002")
 
 # create the plot
-ggplot(
+g_age.2 <- ggplot(
     data = ageplot.2,
     aes(x = cycle, y = Proportion, color = Age)
 ) +
@@ -473,7 +143,7 @@ sexplot.2 <- rbind(plot_male.2, plot_female.2)
 sex_ptrend.2 <- c("Female, P trend 0.168", "Male, P trend 0.509")
 
 # create the plot
-ggplot(
+g_sex.2 <- ggplot(
     data = sexplot.2,
     aes(x = cycle, y = Proportion, color = Sex)
 ) +
@@ -545,7 +215,7 @@ head(raceplot.2, 10)
 ptrend_race.2 <- c("NH Black, P trend 0.120", "Hispanic, P trend 0.260", "NH White, P trend 0.058")
 
 # create the plot
-ggplot(
+g_race.2 <- ggplot(
     data = raceplot.2,
     aes(x = cycle, y = Proportion, color = Ethnicity)
 ) +

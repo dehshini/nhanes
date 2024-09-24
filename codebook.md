@@ -23,18 +23,18 @@ This is done for the combined cycles as well as the individual cycles.
 this creates an analytic dataset by taking only the diabetic population and excluding people with NA values for the outcome variable (self-reported health). also exclude poeple with NAs for variables with less than 2% missingness. 
 produces plots of the missing data proportions. 
 
-* 3. create the weighted datasets with "weighted_analysis" script.
+* 3. create the weighted datasets with "weighted_prop" script.
 this creates survey design objects for the combine cycles dataset and the individual cycle datasets. 
 calculates the weighted proportion of low srh and high srh overall and stratified by various variables. 
 (age, sex, race) and (HBA1C, insurance status, family income, education). saves each analysis in a csv file.
 
-* 4. "analysis_4y_cycles" creates combined 4 year cycles and calculates the MEC 4yr weights. The weighted proportions of low SRH and high SRH are then calculated and saved in csv files. The last cycle (2017-2018) is not combined to create a 4 year cycle. 
+* 4. "weighted_prop_4y" creates combined 4 year cycles and calculates the MEC 4yr weights. The weighted proportions of low SRH and high SRH are then calculated and saved in csv files. The last cycle (2017-2018) is not combined to create a 4 year cycle. 
 
 * 5. "regression" 
 
-* 6. "visuals_clean" creates the trend graphs for overall and by stratifying variables. This is done for the 2 year cycles and for the 4 year cycles.
+* 6. "visuals" creates the trend graphs for overall and by stratifying variables. This is done for the 2 year cycles and for the 4 year cycles.
 
-note: the "clean" versions of these scripts can be sourced in order. 
+note: the "clean" versions of these scripts can be sourced 
 
 * 7. need to create high srh proportions. 
 

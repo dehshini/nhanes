@@ -111,6 +111,8 @@ write.xlsx(
 write.csv(proportion_srh2, file = "./out/srh_distribution2.csv")
 
 
+# low srh summary
+
 proportion_lowsrh_weighted2 <- do.call(
     rbind, lapply(
         weighted_4y_list, 
@@ -329,6 +331,13 @@ write.csv(prop_lowsrh_gt9.2, file = "./out/lowsrh_gt9_2.csv")
 #######################################################
 # HIGH SRH
 #######################################################
+
+# calculate proportion of high_srh
+prop_highsrh.2 <- do.call(
+    rbind, lapply(weighted_4y_list, calculate_svy_prop, "high_srh")
+)
+write.csv(prop_highsrh.2, file = "./out/highsrh_summary2.csv")
+
 
 #####################
 # by AGE GROUP, less than 65 and >=65
