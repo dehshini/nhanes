@@ -3,7 +3,7 @@ library(tidyverse)
 library(patchwork)
 library(ggthemes)
 
-theme_panel <- theme_clean() +
+theme_panel <- theme_light() +
     theme(
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank()
@@ -11,8 +11,9 @@ theme_panel <- theme_clean() +
     theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
     theme(legend.title = element_text(size = 10)) +
     theme(legend.text = element_text(size = 10)) +
-    theme(legend.key.size = unit(0.5, "cm")) +
-    theme(legend.key.height = unit(0.2, "cm"))
+    theme(legend.key.size = unit(0.9, "cm")) +
+    theme(legend.key.height = unit(0.2, "cm")) +
+    theme(plot.tag.position = c(0.01, 0.99))
 
 
 # P1 - Overall
@@ -49,16 +50,16 @@ p1 <- ggplot(
         limits = c(0, 100)
     ) +
     labs(
-        x = "NHANES Cycle",
+        x = "Year",
         y = "Proportion (%)",
-        title = "Overall"
+        tag = "A"
     ) +
     theme_panel +
     annotate(
         geom = "text",
-        x = 3,
-        y = 18,
-        label = paste("P trend", round(p_trend.2[[2, 5]], 3)),
+        x = 2,
+        y = 90,
+        label = c("Overall\n\n", paste("\tP trend", round(p_trend.2[[2, 5]], 3))),
         size = 5
     )
 
@@ -72,7 +73,7 @@ p2 <- ggplot(
     aes(x = cycle, y = Proportion, color = Age)
 ) +
     geom_line(
-        aes(group = Age, linetype = Age),
+        aes(group = Age),
         linewidth = 1,
         position = position_dodge(width = 0.2)
     ) +
@@ -85,19 +86,17 @@ p2 <- ggplot(
         aes(
             ymin = Lower_CI,
             ymax = Upper_CI,
-            color = Age,
-            linetype = Age
+            color = Age
         ),
         width = 0.3,
         position = position_dodge(width = 0.2)
     ) +
     labs(
-        title = "by Age Group",
-        x = "NHANES Cycle",
+        x = "Year",
         y = "Proportion (%)",
-        color = "Age Group",
-        linetype = "Age Group",
-        shape = "Age Group",
+        color = "Age",
+        shape = "Age",
+        tag = "B"
     ) +
     theme_panel +
     scale_x_discrete(label = xlabels.2) +
@@ -105,12 +104,19 @@ p2 <- ggplot(
         breaks = seq(0, 100, 20),
         limits = c(0, 100)
     ) +
-    scale_color_brewer(palette = "Dark2") +
-    scale_color_discrete(labels = age_ptrend.2) +
-    scale_linetype_discrete(labels = age_ptrend.2) +
-    scale_shape_discrete(labels = age_ptrend.2) +
+    scale_color_manual(
+        labels = age_ptrend.2,
+        values = c(">=65" = "blue", "<65" = "red"),
+        breaks = c(">=65", "<65")
+        ) +
+    scale_shape_manual(
+        labels = age_ptrend.2,
+        values = c(">=65" = 15, "<65" = 17),
+        breaks = c(">=65", "<65")
+        ) +
     theme(
-        legend.position = c(0.5, 0.2) # Position inside the plot area
+        legend.position = c(0.05, 0.9),
+        legend.justification = "left"
     )
 
 p2
@@ -124,7 +130,7 @@ p3 <- ggplot(
     aes(x = cycle, y = Proportion, color = Ethnicity)
 ) +
     geom_line(
-        aes(group = Ethnicity, linetype = Ethnicity),
+        aes(group = Ethnicity),
         linewidth = 1,
         position = position_dodge(width = 0.2)
     ) +
@@ -136,20 +142,18 @@ p3 <- ggplot(
     geom_errorbar(
         aes(
             ymin = Lower_CI,
-            ymax = Upper_CI,
-            color = Ethnicity,
-            linetype = Ethnicity
+            ymax = Upper_CI
+            #color = Ethnicity
         ),
         width = 0.3,
         position = position_dodge(width = 0.2)
     ) +
     labs(
-        title = "by Race/Ethnicity",
-        x = "NHANES Cycle",
+        x = "Year",
         y = "Proportion (%)",
-        color = "Ethnicity",
-        linetype = "Ethnicity",
-        shape = "Ethnicity"
+        color = "Race/Ethnicity",
+        shape = "Race/Ethnicity",
+        tag = "C"
     ) +
     theme_panel +
     scale_x_discrete(label = xlabels.2) +
@@ -157,12 +161,19 @@ p3 <- ggplot(
         breaks = seq(0, 100, 20),
         limits = c(0, 100)
     ) +
-    scale_color_brewer(palette = "Dark2") +
-    scale_color_discrete(labels = ptrend_race.2) +
-    scale_linetype_discrete(labels = ptrend_race.2) +
-    scale_shape_discrete(labels = ptrend_race.2) +
+    scale_color_manual(
+        labels = ptrend_race.2,
+ #       values = c("#45b1ff", "#fdc41b", "#fa3838"),
+        values = c("blue", "orange", "red"),
+        breaks = c("White", "Black", "Hispanic")
+    ) +
+    scale_shape_manual(
+        labels = ptrend_race.2,
+        values = c(15, 16, 17),
+        breaks = c("White", "Black", "Hispanic")) +
     theme(
-        legend.position = c(0.5, 0.2) # Position inside the plot area
+        legend.position = c(0.05, 0.9),
+        legend.justification = "left"
     )
 
 p3
@@ -176,7 +187,7 @@ p4 <- ggplot(
     aes(x = cycle, y = Proportion, color = Income)
 ) +
     geom_line(
-        aes(group = Income, linetype = Income),
+        aes(group = Income),
         linewidth = 1,
         position = position_dodge(width = 0.2)
     ) +
@@ -189,19 +200,17 @@ p4 <- ggplot(
         aes(
             ymin = Lower_CI,
             ymax = Upper_CI,
-            color = Income,
-            linetype = Income
+            color = Income
         ),
         width = 0.3,
         position = position_dodge(width = 0.2)
     ) +
     labs(
-        title = "by Family Income",
-        x = "NHANES Cycle",
+        x = "Year",
         y = "Proportion (%)",
         color = "Family Income",
-        linetype = "Family Income",
-        shape = "Family Income"
+        shape = "Family Income",
+        tag = "D"
     ) +
     theme_panel +
     scale_x_discrete(label = xlabels.2) +
@@ -209,12 +218,17 @@ p4 <- ggplot(
         limits = c(0, 100),
         breaks = seq(0, 100, 20)
     ) +
-    scale_color_brewer(palette = "Dark2") +
-    scale_color_discrete(labels = income_ptrend.2) +
-    scale_linetype_discrete(labels = income_ptrend.2) +
-    scale_shape_discrete(labels = income_ptrend.2) +
+    scale_color_manual(
+        labels = income_ptrend.2, 
+        values = c("blue", "red")
+    ) +
+    scale_shape_manual(
+        labels = income_ptrend.2,
+        values = c(15, 17)
+    ) +
     theme(
-        legend.position = c(0.5, 0.15) # Position inside the plot area
+        legend.position = c(0.05, 0.9),
+        legend.justification = "left"
     )
 
 p4
@@ -226,7 +240,7 @@ p5 <- ggplot(
     aes(x = cycle, y = Proportion, color = Education)
 ) +
     geom_line(
-        aes(group = Education, linetype = Education),
+        aes(group = Education),
         linewidth = 1,
         position = position_dodge(width = 0.2)
     ) +
@@ -239,19 +253,17 @@ p5 <- ggplot(
         aes(
             ymin = Lower_CI,
             ymax = Upper_CI,
-            color = Education,
-            linetype = Education
+            color = Education
         ),
         width = 0.3,
         position = position_dodge(width = 0.2)
     ) +
     labs(
-        title = "by Education",
-        x = "NHANES Cycle",
+        x = "Year",
         y = "Proportion (%)",
         color = "Education",
-        linetype = "Education",
-        shape = "Education"
+        shape = "Education",
+        tag = "E"
     ) +
     theme_panel +
     scale_x_discrete(label = xlabels.2) +
@@ -259,12 +271,19 @@ p5 <- ggplot(
         limits = c(0, 100),
         breaks = seq(0, 100, 20)
     ) +
-    scale_color_brewer(palette = "Dark2") +
-    scale_color_discrete(labels = ptrend_education.2) +
-    scale_linetype_discrete(labels = ptrend_education.2) +
-    scale_shape_discrete(labels = ptrend_education.2) +
+    scale_color_manual(
+        labels = ptrend_education.2,
+        values = c("blue", "orange", "red"),
+        breaks = c("College", "High school", "Below high school")
+        ) +
+    scale_shape_manual(
+        labels = ptrend_education.2,
+        values = c(15, 16, 17),
+        breaks = c("College", "High school", "Below high school")
+        ) +
     theme(
-        legend.position = c(0.5, 0.15) # Position inside the plot area
+        legend.position = c(0.05, 0.9),
+        legend.justification = "left"
     )
 
 p5
@@ -276,7 +295,7 @@ p6 <- ggplot(
     aes(x = cycle, y = Proportion, color = Insurance)
 ) +
     geom_line(
-        aes(group = Insurance, linetype = Insurance),
+        aes(group = Insurance),
         linewidth = 1,
         position = position_dodge(width = 0.2)
     ) +
@@ -289,19 +308,17 @@ p6 <- ggplot(
         aes(
             ymin = Lower_CI,
             ymax = Upper_CI,
-            color = Insurance,
-            linetype = Insurance
+            color = Insurance
         ),
         width = 0.3,
         position = position_dodge(width = 0.2)
     ) +
     labs(
-        title = "by Insurance",
-        x = "NHANES Cycle",
+        x = "Year",
         y = "Proportion (%)",
         color = "Insurance",
-        linetype = "Insurance",
-        shape = "Insurance"
+        shape = "Insurance",
+        tag = "F"
     ) +
     theme_panel +
     scale_x_discrete(label = xlabels.2) +
@@ -309,12 +326,19 @@ p6 <- ggplot(
         limits = c(0, 100),
         breaks = seq(0, 100, 20)
     ) +
-    scale_color_brewer(palette = "Dark2") +
-    scale_color_discrete(labels = insurance_ptrend.2) +
-    scale_linetype_discrete(labels = insurance_ptrend.2) +
-    scale_shape_discrete(labels = insurance_ptrend.2) +
+    scale_color_manual(
+        labels = insurance_ptrend.2,
+        values = c("blue", "red"),
+        breaks = c("Uninsured", "Insured")
+        ) +
+    scale_shape_manual(
+        labels = insurance_ptrend.2,
+        values = c(15, 17),
+        breaks = c("Uninsured", "Insured")
+        ) +
     theme(
-        legend.position = c(0.5, 0.15) # Position inside the plot area
+        legend.position = c(0.05, 0.9),
+        legend.justification = "left"
     )
 
 p6
@@ -322,15 +346,37 @@ p6
 
 
 # Combine the six plots
-combined_plot <- (p1 + p2 + p3) / (p4 + p5 + p6) +
+combined_plot <- (p1 + p2 + p3) / (p4 + p5 + p6)
+
+combined_plot +
+    plot_layout(
+        axes = "collect",
+        guides = "keep",
+        axis_titles = "collect"
+    ) +
     plot_annotation(
-        title = "Trend of high SRH Among US Adults with Self-Reported Diabetes",
-        theme = theme(plot.title = element_text(hjust = 0.5)),
         tag_levels = "A"
     ) +
-    plot_layout(axes = "collect", guides = "keep")
+    labs(
+        caption = "Figure. Trends in the prevalence of high self-reported health among US adults with diabetes"
+    ) +
+    theme(
+        plot.caption = element_text(hjust = 0.5, size = rel(1.2))
+    )
 
-combined_plot + plot_layout(axes = "collect", guides = "keep")
+
+caption <- textGrob(
+    "Figure. Trends in the Prevalence of High Self-Reported Health Among US Adults with Diabetes",
+    gp = gpar(fontsize = 18), # Change fontsize here
+    hjust = 0, # Left-align the text
+    x = 0.01 # Adjust x to fine-tune the alignment
+)
+
+combined_plot <- gridExtra::grid.arrange(
+    p1, p2, p3, p4, p5, p6,
+    bottom = caption,
+    ncol = 3, nrow = 2
+)
 
 # Display the combined figure
 print(combined_plot)

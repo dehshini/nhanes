@@ -5,7 +5,8 @@ setwd("/Users/dehshini/code/R/nhanes")
 pacman::p_load(
   tidyverse, haven, data.table, survey, 
   gtsummary, transplantr, openxlsx, gt, 
-  tableone, DataExplorer, Publish, broom
+  tableone, DataExplorer, Publish, broom,
+  patchwork, ggthemes, gridExtra, grid
 )
 
 # Function to load data files from a directory

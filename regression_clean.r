@@ -472,9 +472,6 @@ analyze_csv <- function(file_path) {
 }
 
 
-# Load required package
-library(tidyverse)
-
 # Function to test two weighted proportions from a CSV file
 test_weighted_proportions <- function(file_path, row1, row2) {
     # Read the CSV file
@@ -556,3 +553,18 @@ test_weighted_proportions("./out/lowsrh_uninsured_2.csv", 1, 5)
 test_weighted_proportions("./out/lowsrh_highschool_2.csv", 1, 5)
 test_weighted_proportions("./out/lowsrh_college_2.csv", 1, 5)
 test_weighted_proportions("./out/lowsrh_belowhighschool_2.csv", 1, 5)
+
+svychisq(
+    formula = ~ high_srh+RACE,
+    design = trend_design2
+)
+
+# compare proportions of race white 2017/2018 vs hispanic 2017/2018
+prop.test(
+    x = round(
+        c(raceplot.2$Proportion[5]/100, raceplot.2$Proportion[15]/100) * 
+            c(raceplot.2$Unweighted_Count[5], raceplot.2$Unweighted_Count[15])
+        ),
+    n = c(raceplot.2$Unweighted_Count[5], raceplot.2$Unweighted_Count[15]),
+    correct = FALSE
+)

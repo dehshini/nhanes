@@ -72,7 +72,7 @@ colnames(plot_lt65.2)[1] <- "cycle"
 ageplot.2 <- rbind(plot_gt65.2, plot_lt65.2)
 
 # age P values
-age_ptrend.2 <- c("< 65 years, P trend 0.821", ">= 65 years, P trend 0.002")
+age_ptrend.2 <- c("≥ 65 years, P trend 0.002", "< 65 years, P trend 0.821")
 
 # create the plot
 g_age.2 <- ggplot(
@@ -212,7 +212,11 @@ head(raceplot.2, 10)
 
 
 # race P values
-ptrend_race.2 <- c("NH Black, P trend 0.120", "Hispanic, P trend 0.260", "NH White, P trend 0.058")
+ptrend_race.2 <- c(
+    "Non-Hispanic White, P trend 0.058",
+    "Non-Hispanic Black, P trend 0.120", 
+    "Hispanic, P trend 0.260"
+)
 
 # create the plot
 g_race.2 <- ggplot(
@@ -353,8 +357,8 @@ head(insuranceplot.2, 10)
 
 # insurance P values
 insurance_ptrend.2 <- c(
-    "Uninsured, P trend 0.259",
-    "Insured (Private/Public), P trend 0.054"
+    "Insured, P trend 0.054",
+    "Uninsured, P trend 0.259"
 )
 
 # create the plot
@@ -430,9 +434,9 @@ educationplot.2 <- rbind(plot_education.2, plot_education1.2, plot_education2.2)
 head(educationplot.2, 10)
 
 ptrend_education.2 <- c(
-    "Less than High School, P trend 0.783",
     "Above High School, P trend 0.662",
-    "High School/equivalent, P trend 0.736"
+    "High School/equivalent, P trend 0.736",
+    "Less than High School, P trend 0.783"
 )
 
 # create the plot
