@@ -172,7 +172,7 @@ p3 <- ggplot(
         values = c(15, 16, 17),
         breaks = c("White", "Black", "Hispanic")) +
     theme(
-        legend.position = c(0.05, 0.9),
+        legend.position = c(0.05, 0.88),
         legend.justification = "left"
     )
 
@@ -282,7 +282,7 @@ p5 <- ggplot(
         breaks = c("College", "High school", "Below high school")
         ) +
     theme(
-        legend.position = c(0.05, 0.9),
+        legend.position = c(0.05, 0.88),
         legend.justification = "left"
     )
 
